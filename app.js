@@ -634,7 +634,12 @@ async function handleSendChat() {
   appendChatMessage(escapeHtml(query), 'user');
   inputEl.value = '';
 
-  const apiKey = getActiveApiKey();
+  let userApiKey = getActiveApiKey();
+
+  if (!userApiKey) {
+    appendChatMessage(`🔑 <strong>Gemini API Key Required:</strong> Please click <button onclick="document.getElementById('api-modal').classList.add('active')" style="background:linear-gradient(135deg, var(--primary-blue), var(--primary-indigo)); color:#fff; border:none; padding:4px 10px; border-radius:6px; cursor:pointer; font-weight:600;"><i class="fa-solid fa-key"></i> Configure API Key</button> to enter your Google AI Studio key.`, 'bot');
+    return;
+  }
 
   // Append user turn to conversation history
   geminiChatHistory.push({
@@ -666,8 +671,6 @@ async function handleSendChat() {
     }
   };
 
-  const userApiKey = getActiveApiKey();
-  
   // Collect candidate key/auth strategies to guarantee connectivity
   const keysToTry = [
     { key: userApiKey, isBearer: userApiKey.startsWith("AQ.") },

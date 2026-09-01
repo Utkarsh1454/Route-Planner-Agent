@@ -115,12 +115,17 @@
         <!-- Tab 2: Gemini Flash AI Assistant -->
         <div class="tab-content" id="tab-gemini-ai">
           <div class="card ai-card">
-            <div class="ai-header">
-              <i class="fa-solid fa-sparkles"></i>
-              <div>
-                <h4>Gemini 2.5/1.5 Flash AI Assistant</h4>
-                <p>Describe your trip in plain English or ask travel questions!</p>
+            <div class="ai-header" style="display: flex; justify-content: space-between; align-items: center;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <i class="fa-solid fa-sparkles"></i>
+                <div>
+                  <h4>Gemini 2.5/1.5 Flash AI Assistant</h4>
+                  <p>Describe your trip in plain English or ask travel questions!</p>
+                </div>
               </div>
+              <button class="btn-secondary-sm" id="api-key-btn" onclick="document.getElementById('api-modal').classList.add('active')" style="background: rgba(255,255,255,0.08); color: var(--text-main); border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px;">
+                <i class="fa-solid fa-key"></i> Key
+              </button>
             </div>
 
             <div class="chat-container" id="chat-messages">
@@ -237,6 +242,6 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   
   <!-- Custom App JS -->
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
