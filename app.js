@@ -781,7 +781,7 @@ function setupEventListeners() {
 
     const startVal = startInput.value.trim() || memory.currentLocation || "Phagwara";
     const returnToStart = document.getElementById('return-start-check').checked;
-    const ignoreMemory = document.getElementById('ignore-memory-check') ? document.getElementById('ignore-memory-check').checked : false;
+    const ignoreMemory = false;
 
     const result = planAgentTrip(selectedStops, startVal, returnToStart, ignoreMemory);
     renderRouteOnMap(result);
