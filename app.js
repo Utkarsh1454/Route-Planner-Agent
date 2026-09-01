@@ -967,18 +967,20 @@ async function handleSendChat() {
   ];
 
   let userSelectedModel = localStorage.getItem('gemini_model') || 'gemini-2.5-flash';
-  if (userSelectedModel.includes('3.6') || userSelectedModel.endsWith('1.5-pro')) {
+  if (userSelectedModel.includes('3.6') || userSelectedModel === 'gemini-1.5-pro' || userSelectedModel === 'gemini-1.5-flash') {
     userSelectedModel = 'gemini-2.5-flash';
     localStorage.setItem('gemini_model', 'gemini-2.5-flash');
   }
 
-  const modelsToTry = [userSelectedModel, 'gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-1.5-flash'].filter((v, i, a) => a.indexOf(v) === i);
+  const modelsToTry = [userSelectedModel, 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-2.5-pro'].filter((v, i, a) => a.indexOf(v) === i);
 
   for (const strat of keysToTry) {
     if (!strat.key) continue;
     for (const model of modelsToTry) {
       try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+        const url = strat.isBearer 
+          ? `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`
+          : `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(strat.key)}`;
 
         const headers = {
           'Content-Type': 'application/json'
