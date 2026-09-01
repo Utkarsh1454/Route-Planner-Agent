@@ -818,13 +818,21 @@ function setupEventListeners() {
   closeModal.addEventListener('click', () => apiModal.classList.remove('active'));
   saveKeyBtn.addEventListener('click', () => {
     const key = document.getElementById('gemini-key-input').value.trim();
+    const model = document.getElementById('gemini-model-select').value;
     if (key) {
       localStorage.setItem('gemini_api_key', key);
-      localStorage.setItem('gemini_model', document.getElementById('gemini-model-select').value);
-      alert("Gemini API key saved!");
+      localStorage.setItem('gemini_model', model);
+      updateQuotaMonitorUI();
       apiModal.classList.remove('active');
     }
   });
+
+  const modelSelectEl = document.getElementById('gemini-model-select');
+  if (modelSelectEl) {
+    modelSelectEl.addEventListener('change', (e) => {
+      localStorage.setItem('gemini_model', e.target.value);
+    });
+  }
   removeKeyBtn.addEventListener('click', () => {
     localStorage.removeItem('gemini_api_key');
     document.getElementById('gemini-key-input').value = '';
@@ -1097,14 +1105,14 @@ async function handleSendChat() {
   ];
 
   let userSelectedModel = localStorage.getItem('gemini_model') || 'gemini-3.5-flash';
-  if (userSelectedModel.includes('pro') || userSelectedModel === 'gemini-1.5-flash') {
+  if (userSelectedModel.includes('pro') || userSelectedModel.includes('3.6') || userSelectedModel === 'gemini-1.5-flash') {
     userSelectedModel = 'gemini-3.5-flash';
     localStorage.setItem('gemini_model', 'gemini-3.5-flash');
   }
 
-  // Active models: prioritize Gemini 3.5 Flash and 3.7 Flash which have active 7/20 & 3/20 RPD quota
-  const modelsToTry = [userSelectedModel, 'gemini-3.5-flash', 'gemini-3.7-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-3.6-flash', 'gemini-1.5-flash-latest']
-    .filter(m => m && !m.includes('pro'))
+  // Active models: prioritize Gemini 3.5 Flash and 3.7 Flash; EXCLUDE gemini-3.6-flash which hit 21/20 RPD daily limit!
+  const modelsToTry = [userSelectedModel, 'gemini-3.5-flash', 'gemini-3.7-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash-latest']
+    .filter(m => m && !m.includes('pro') && !m.includes('3.6'))
     .filter((v, i, a) => a.indexOf(v) === i);
 
   for (const strat of keysToTry) {
@@ -1180,7 +1188,26 @@ async function handleSendChat() {
       appendChatMessage(htmlFormatted, 'bot');
     }
   } else {
-    if (loadingEl) loadingEl.innerHTML = `<span style="color:#ef4444;">Gemini API Error: ${lastErrorMessage || 'Unable to connect to Gemini API.'}</span>`;
+    // API Failed or Rate-Limited: Execute Local OSM Smart Extraction Fallback so the app NEVER stops working!
+    const localParsed = smartExtractStops(query);
+    if (localParsed.stops && localParsed.stops.length > 0) {
+      const startLoc = localParsed.start || startLocation || memory.currentLocation || "Phagwara";
+      selectedStops = [];
+      localParsed.stops.forEach(s => {
+        if (!selectedStops.includes(s)) selectedStops.push(s);
+      });
+      renderSelectedStops();
+
+      const returnToStart = document.getElementById('return-start-check') ? document.getElementById('return-start-check').checked : false;
+      const result = planAgentTrip(selectedStops, startLoc, returnToStart);
+      renderRouteOnMap(result);
+
+      const fallbackMsg = `📍 <strong>Local OSM Route Agent Active:</strong> Parsed query and plotted route <strong>${startLoc} ➔ ${selectedStops.join(' ➔ ')}</strong> (${result.totalDistance} km).<br><small style="color:var(--text-muted);">(Gemini AI status: ${escapeHtml(lastErrorMessage || 'Quota cooldown')}. Try switching model in settings).</small>`;
+      if (loadingEl) loadingEl.innerHTML = fallbackMsg;
+      else appendChatMessage(fallbackMsg, 'bot');
+    } else {
+      if (loadingEl) loadingEl.innerHTML = `<span style="color:#ef4444;">Gemini API Quota Error: ${escapeHtml(lastErrorMessage || 'Rate limit reached.')}. Please switch model in settings or try again later.</span>`;
+    }
     geminiChatHistory.pop(); // Remove unfulfilled turn
   }
 }
