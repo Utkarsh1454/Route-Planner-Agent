@@ -1085,15 +1085,15 @@ async function handleSendChat() {
     { key: userApiKey, isBearer: false }
   ];
 
-  let userSelectedModel = localStorage.getItem('gemini_model') || 'gemini-2.5-flash';
-  if (userSelectedModel.includes('3.6') || userSelectedModel.includes('pro') || userSelectedModel === 'gemini-1.5-flash') {
-    userSelectedModel = 'gemini-2.5-flash';
-    localStorage.setItem('gemini_model', 'gemini-2.5-flash');
+  let userSelectedModel = localStorage.getItem('gemini_model') || 'gemini-3.5-flash';
+  if (userSelectedModel.includes('pro') || userSelectedModel === 'gemini-1.5-flash') {
+    userSelectedModel = 'gemini-3.5-flash';
+    localStorage.setItem('gemini_model', 'gemini-3.5-flash');
   }
 
-  // Filter STRICTLY for Free Tier supported Flash models to prevent 429 quota errors
-  const modelsToTry = [userSelectedModel, 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash-latest']
-    .filter(m => m && !m.includes('pro') && !m.includes('3.6'))
+  // Active models: prioritize Gemini 3.5 Flash and 3.7 Flash which have active 7/20 & 3/20 RPD quota
+  const modelsToTry = [userSelectedModel, 'gemini-3.5-flash', 'gemini-3.7-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-3.6-flash', 'gemini-1.5-flash-latest']
+    .filter(m => m && !m.includes('pro'))
     .filter((v, i, a) => a.indexOf(v) === i);
 
   for (const strat of keysToTry) {
