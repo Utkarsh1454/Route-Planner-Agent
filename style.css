@@ -759,3 +759,34 @@ input[type="text"]:focus, textarea:focus, select:focus {
 .leaflet-popup-tip {
   background: #0f172a !important;
 }
+
+/* Responsive Layout (@media queries) */
+@media (max-width: 900px) {
+  body {
+    overflow-y: auto;
+  }
+
+  .main-content {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-width: 100%;
+    height: auto;
+    max-height: none;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .map-section {
+    min-height: 450px;
+    height: 60vh;
+  }
+
+  .modal-content {
+    width: 92%;
+    max-width: 440px;
+  }
+}

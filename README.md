@@ -11,10 +11,10 @@ with a total-distance report.
 
 ## OpenStreetMap Data Integration (`punjab_locations.json`)
 
-Location data for **15,670 real places** across Punjab was extracted from the OpenStreetMap dataset and pre-parsed into `punjab_locations.json`. At runtime, the agent loads this JSON database directly (fast, lightweight, with zero external package dependencies).
+Location data for **15,670 real places** across Punjab was pre-parsed from the OpenStreetMap dataset into `punjab_locations.json`. At runtime, the agent loads this pre-processed JSON database directly (fast, lightweight, with zero external C-library package dependencies). For full reproducibility, `agent.py` includes a live `osmium` PBF stream handler fallback (`load_punjab_locations`) if a raw `punjab.pbf` file is placed in the project directory.
 - Covers all major cities (Ludhiana, Amritsar, Jalandhar, Patiala, Mohali, Bathinda, Phagwara, Moga, Hoshiarpur, Pathankot, Firozpur, Barnala, Kapurthala, Sangrur, Mansa, etc.).
 - Includes 2,457 hospitals, 1,050 clinics, and 238 station-type entries, plus universities (e.g. `LPU`), colleges, hotels, markets, and other amenities across every district.
-- Performs case-insensitive, substring, and fuzzy location name resolution (`difflib`).
+- Performs case-insensitive, substring, and strict fuzzy location name resolution (`difflib`).
 - Calculates real geographical distances using the Haversine formula on exact OSM GPS coordinates.
 
 ## The two tools

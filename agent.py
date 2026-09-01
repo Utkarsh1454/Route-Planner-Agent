@@ -170,14 +170,18 @@ def resolve_location_name(name: str) -> str:
         sub_matches.sort(key=len)
         return sub_matches[0]
 
-    # 3. Reverse substring match: location name inside user query (e.g. 'Amritsar' inside 'Amritsar City')
-    rev_matches = [canonical for k_lower, canonical in LOCATION_LOOKUP.items() if len(k_lower) > 3 and k_lower in lower]
+    # 3. Reverse substring match: location name inside user query with word boundaries (e.g. 'Amritsar' inside 'Amritsar City')
+    import re
+    rev_matches = [
+        canonical for k_lower, canonical in LOCATION_LOOKUP.items() 
+        if len(k_lower) > 3 and re.search(r'\b' + re.escape(k_lower) + r'\b', lower)
+    ]
     if rev_matches:
         rev_matches.sort(key=len, reverse=True)
         return rev_matches[0]
 
-    # 4. Fuzzy difflib matching
-    close_matches = difflib.get_close_matches(clean_name, list(LOCATIONS.keys()), n=1, cutoff=0.5)
+    # 4. Fuzzy difflib matching (strict cutoff 0.75 to prevent false matches)
+    close_matches = difflib.get_close_matches(clean_name, list(LOCATIONS.keys()), n=1, cutoff=0.75)
     if close_matches:
         return close_matches[0]
 

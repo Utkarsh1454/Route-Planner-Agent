@@ -133,8 +133,12 @@ function resolveLocation(name) {
   const subMatch = locationKeys.find(k => k.toLowerCase().includes(lower));
   if (subMatch) return subMatch;
 
-  // Reverse substring match
-  const revMatch = locationKeys.find(k => k.length > 3 && lower.includes(k.toLowerCase()));
+  // Reverse substring match with word boundary check
+  const revMatch = locationKeys.find(k => {
+    if (k.length <= 3) return false;
+    const reg = new RegExp('\\b' + k.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b');
+    return reg.test(lower);
+  });
   if (revMatch) return revMatch;
 
   return null;
@@ -151,6 +155,8 @@ function searchLocations(query) {
 
 // ---------------------------------------------------------------------------
 // 3. Routing Engine (Haversine + 2-Opt Optimizer matching agent.py)
+// Note: This client-side JavaScript 2-Opt Routing Engine is an intentional standalone
+// frontend mirror of agent.py's order_stops tool for immediate browser rendering.
 // ---------------------------------------------------------------------------
 function getDistance(a, b) {
   const canonA = resolveLocation(a);
@@ -677,19 +683,22 @@ async function handleSendChat() {
     { key: userApiKey, isBearer: false }
   ];
 
-  const modelsToTry = ['gemini-1.5-flash', 'gemini-3.5-flash', 'gemini-2.0-flash'];
+  const modelsToTry = ['gemini-1.5-flash', 'gemini-2.0-flash'];
 
   for (const strat of keysToTry) {
     if (!strat.key) continue;
     for (const model of modelsToTry) {
       try {
-        const url = strat.isBearer 
-          ? `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`
-          : `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${strat.key}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
-        const headers = { 'Content-Type': 'application/json' };
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+
         if (strat.isBearer) {
           headers['Authorization'] = `Bearer ${strat.key}`;
+        } else {
+          headers['x-goog-api-key'] = strat.key;
         }
 
         const response = await fetch(url, {
