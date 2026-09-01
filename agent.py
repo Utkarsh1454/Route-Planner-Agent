@@ -145,6 +145,13 @@ ALIASES: Dict[str, str] = {
 }
 
 
+GENERIC_EXCLUDES = {
+    "market", "store", "chowk", "main", "mandi", "dhar", "jalan", "mode", "rama", 
+    "town", "stand", "bus stand", "city", "post", "office", "street", "road", "near",
+    "hospital", "gate", "block", "station", "supermarket", "school", "college", "sector"
+}
+
+
 def resolve_location_name(name: str) -> str:
     """Finds exact, alias, or fuzzy location name matching in Punjab OSM database."""
     if not name:
@@ -165,7 +172,10 @@ def resolve_location_name(name: str) -> str:
         return LOCATION_LOOKUP[lower]
     
     # 2. Substring match: user query is inside location name (e.g. 'golden temple' inside 'golden temple post office')
-    sub_matches = [canonical for k_lower, canonical in LOCATION_LOOKUP.items() if lower in k_lower]
+    sub_matches = [
+        canonical for k_lower, canonical in LOCATION_LOOKUP.items() 
+        if lower in k_lower and (k_lower not in GENERIC_EXCLUDES or k_lower == lower)
+    ]
     if sub_matches:
         sub_matches.sort(key=len)
         return sub_matches[0]
@@ -174,14 +184,15 @@ def resolve_location_name(name: str) -> str:
     import re
     rev_matches = [
         canonical for k_lower, canonical in LOCATION_LOOKUP.items() 
-        if len(k_lower) > 3 and re.search(r'\b' + re.escape(k_lower) + r'\b', lower)
+        if len(k_lower) > 3 and k_lower not in GENERIC_EXCLUDES and re.search(r'\b' + re.escape(k_lower) + r'\b', lower)
     ]
     if rev_matches:
         rev_matches.sort(key=len, reverse=True)
         return rev_matches[0]
 
     # 4. Fuzzy difflib matching (strict cutoff 0.75 to prevent false matches)
-    close_matches = difflib.get_close_matches(clean_name, list(LOCATIONS.keys()), n=1, cutoff=0.75)
+    candidates = [k for k in LOCATIONS.keys() if k.lower() not in GENERIC_EXCLUDES]
+    close_matches = difflib.get_close_matches(clean_name, candidates, n=1, cutoff=0.75)
     if close_matches:
         return close_matches[0]
 
@@ -351,20 +362,26 @@ class RouteAgent:
 # ---------------------------------------------------------------------------
 
 def print_trace(result: dict) -> None:
-    print("\n" + "=" * 60)
-    print(f"📍 Start: {result['start']}")
+    def safe_print(text: str) -> None:
+        try:
+            print(text)
+        except UnicodeEncodeError:
+            print(text.encode("ascii", errors="replace").decode("ascii"))
+
+    safe_print("\n" + "=" * 60)
+    safe_print(f"Start: {result['start']}")
     if result.get("skipped_already_visited"):
-        print(f"⚠️  Skipped (Already Visited): {result['skipped_already_visited']}")
-    print("-" * 60)
+        safe_print(f"[Skipped Visited]: {result['skipped_already_visited']}")
+    safe_print("-" * 60)
     for step in result["trace"]:
         considered = ", ".join(f"{k}={v:.2f}km" for k, v in step["considered"].items())
-        print(f"  Step {step['step']}: at {step['from']}")
-        print(f"          Evaluated distances: [{considered}]")
-        print(f"          ➔ Decision: {step['decision']}")
-    print("-" * 60)
-    print(f"🛣️  Final Route: {' -> '.join(result['route'])}")
-    print(f"📏 Total Distance: {result['total_distance_km']} km")
-    print("=" * 60 + "\n")
+        safe_print(f"  Step {step['step']}: at {step['from']}")
+        safe_print(f"          Evaluated distances: [{considered}]")
+        safe_print(f"          -> Decision: {step['decision']}")
+    safe_print("-" * 60)
+    safe_print(f"Final Route: {' -> '.join(result['route'])}")
+    safe_print(f"Total Distance: {result['total_distance_km']} km")
+    safe_print("=" * 60 + "\n")
 
 
 def interactive_cli():

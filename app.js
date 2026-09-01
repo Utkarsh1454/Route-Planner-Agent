@@ -34,11 +34,43 @@ const ALIASES = {
 
 // Initialize Application
 function initApp() {
+  loadMemoryFromLocalStorage();
   initMap();
   loadLocations();
   setupEventListeners();
   setupTabs();
   loadApiKey();
+  updateMemoryUI(null);
+}
+
+function saveMemoryToLocalStorage() {
+  try {
+    localStorage.setItem('punjab_agent_memory', JSON.stringify({
+      visited: memory.visited,
+      currentLocation: memory.currentLocation,
+      distanceCache: memory.distanceCache,
+      tripLog: memory.tripLog,
+      totalDistance: memory.totalDistance
+    }));
+  } catch (e) {
+    console.warn("Unable to save memory to localStorage:", e);
+  }
+}
+
+function loadMemoryFromLocalStorage() {
+  try {
+    const saved = localStorage.getItem('punjab_agent_memory');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed.visited)) memory.visited = parsed.visited;
+      if (parsed.currentLocation) memory.currentLocation = parsed.currentLocation;
+      if (parsed.distanceCache) memory.distanceCache = parsed.distanceCache;
+      if (parsed.tripLog) memory.tripLog = parsed.tripLog;
+      if (typeof parsed.totalDistance === 'number') memory.totalDistance = parsed.totalDistance;
+    }
+  } catch (e) {
+    console.warn("Unable to load memory from localStorage:", e);
+  }
 }
 
 if (document.readyState === "loading") {
@@ -59,27 +91,39 @@ function initMap() {
   // Add Zoom Control to bottom right
   L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-  // Layer 1: High-res CartoDB Voyager Street Map
-  const streetTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: 'abcd',
+  // Layer 1: OpenStreetMap Standard Map (Free, High Availability)
+  const streetTiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     maxZoom: 19
   });
 
-  // Layer 2: CartoDB Dark Matter Map
-  const darkTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 19
+  // Layer 2: Esri World Street Map
+  const esriStreetTiles = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, USGS',
+    maxZoom: 18
   });
 
-  // Add CartoDB Dark Matter as default matching dark UI theme
-  darkTiles.addTo(map);
+  // Layer 3: Esri Dark Gray Canvas Map
+  const darkTiles = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+    maxZoom: 16
+  });
+
+  // Layer 4: Esri World Topo Map
+  const topoTiles = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+    maxZoom: 18
+  });
+
+  // Add street tiles as default map
+  streetTiles.addTo(map);
 
   // Layer Switcher Control (Top Right)
   const baseMaps = {
-    "🌙 Dark Canvas (CartoDB)": darkTiles,
-    "🗺️ Streets & Roads (Voyager)": streetTiles
+    "🗺️ OpenStreetMap": streetTiles,
+    "🛣️ Esri World Streets": esriStreetTiles,
+    "🌙 Dark Canvas (Esri)": darkTiles,
+    "🏔️ Topo Terrain (Esri)": topoTiles
   };
   L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
 }
@@ -131,17 +175,40 @@ function resolveLocation(name) {
   if (ALIASES[lower] && locationsDB[ALIASES[lower]]) return ALIASES[lower];
   if (locationLookup[lower]) return locationLookup[lower];
 
-  // Substring match
-  const subMatch = locationKeys.find(k => k.toLowerCase().includes(lower));
-  if (subMatch) return subMatch;
+  const GENERIC_EXCLUDE = new Set([
+    "market", "store", "chowk", "main", "mandi", "dhar", "jalan", "mode", "rama", 
+    "town", "stand", "bus stand", "city", "post", "office", "street", "road", "near",
+    "hospital", "gate", "block", "station", "supermarket", "school", "college", "sector"
+  ]);
+
+  // Exact word boundary match on dataset keys
+  const regBoundary = new RegExp('\\b' + lower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
+
+  // Substring match: filter out generic standalone keys unless exact query match
+  const subMatches = locationKeys.filter(k => {
+    const kLower = k.toLowerCase();
+    if (GENERIC_EXCLUDE.has(kLower) && kLower !== lower) return false;
+    return kLower.includes(lower);
+  });
+
+  if (subMatches.length > 0) {
+    subMatches.sort((a, b) => a.length - b.length);
+    return subMatches[0];
+  }
 
   // Reverse substring match with word boundary check
-  const revMatch = locationKeys.find(k => {
-    if (k.length <= 3) return false;
-    const reg = new RegExp('\\b' + k.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b');
+  const revMatches = locationKeys.filter(k => {
+    const kLower = k.toLowerCase();
+    if (kLower.length <= 3) return false;
+    if (GENERIC_EXCLUDE.has(kLower)) return false;
+    const reg = new RegExp('\\b' + kLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
     return reg.test(lower);
   });
-  if (revMatch) return revMatch;
+
+  if (revMatches.length > 0) {
+    revMatches.sort((a, b) => b.length - a.length);
+    return revMatches[0];
+  }
 
   return null;
 }
@@ -264,23 +331,24 @@ function orderStops(start, stops, returnToStart = false) {
 }
 
 // Top-level Plan Trip function using Agent Memory
-function planAgentTrip(requestedStops, start = null, returnToStart = false) {
+function planAgentTrip(requestedStops, start = null, returnToStart = false, ignoreMemory = false) {
   const canonStart = start ? resolveLocation(start) : (memory.currentLocation || "Phagwara");
   const canonGoals = requestedStops.map(s => resolveLocation(s)).filter(Boolean);
 
-  // Memory: filter unvisited
-  const todo = canonGoals.filter(s => !memory.visited.includes(s));
-  const skipped = canonGoals.filter(s => memory.visited.includes(s));
+  let todo = canonGoals;
+  let skipped = [];
 
-  if (todo.length === 0) {
-    return {
-      start: canonStart,
-      route: [canonStart],
-      totalDistanceKm: 0.0,
-      trace: [],
-      skipped: skipped,
-      note: "All requested stops were already visited earlier this session."
-    };
+  if (!ignoreMemory) {
+    todo = canonGoals.filter(s => !memory.visited.includes(s));
+    skipped = canonGoals.filter(s => memory.visited.includes(s));
+  }
+
+  // If ALL requested stops were already visited, automatically re-visit so UI planning never fails with 0km
+  let autoRevisited = false;
+  if (todo.length === 0 && canonGoals.length > 0) {
+    todo = canonGoals;
+    skipped = [];
+    autoRevisited = true;
   }
 
   const outcome = orderStops(canonStart, todo, returnToStart);
@@ -290,14 +358,18 @@ function planAgentTrip(requestedStops, start = null, returnToStart = false) {
     if (!memory.visited.includes(s)) memory.visited.push(s);
   });
   memory.currentLocation = returnToStart ? canonStart : outcome.route[outcome.route.length - 1];
-  memory.totalDistance += outcome.totalDistanceKm;
+  
+  if (!autoRevisited) {
+    memory.totalDistance += outcome.totalDistanceKm;
+  }
 
   return {
     start: canonStart,
     route: outcome.route,
     totalDistanceKm: outcome.totalDistanceKm,
     trace: outcome.trace,
-    skipped: skipped
+    skipped: skipped,
+    autoRevisited: autoRevisited
   };
 }
 
@@ -400,7 +472,21 @@ async function renderRouteOnMap(result) {
 
   if (result.skipped && result.skipped.length > 0) {
     skippedWarning.style.display = 'block';
-    skippedText.innerText = `Skipped Visited: ${result.skipped.join(', ')}`;
+    skippedText.innerHTML = `Skipped Visited: ${result.skipped.join(', ')} <button id="replan-clear-btn" style="margin-left: 6px; background: #f59e0b; color: #000; border: none; padding: 2px 8px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 10px;"><i class="fa-solid fa-rotate-left"></i> Re-visit / Clear Memory</button>`;
+    
+    setTimeout(() => {
+      const btn = document.getElementById('replan-clear-btn');
+      if (btn) {
+        btn.onclick = () => {
+          memory.visited = memory.visited.filter(v => !result.skipped.includes(v));
+          updateMemoryUI(null);
+          const startVal = document.getElementById('start-input').value.trim() || memory.currentLocation || "Phagwara";
+          const returnToStart = document.getElementById('return-start-check') ? document.getElementById('return-start-check').checked : false;
+          const newResult = planAgentTrip(selectedStops, startVal, returnToStart, true);
+          renderRouteOnMap(newResult);
+        };
+      }
+    }, 50);
   } else {
     skippedWarning.style.display = 'none';
   }
@@ -410,6 +496,7 @@ async function renderRouteOnMap(result) {
 }
 
 function updateMemoryUI(latestResult) {
+  saveMemoryToLocalStorage();
   document.getElementById('visited-count').innerText = memory.visited.length;
   document.getElementById('session-dist').innerText = `${memory.totalDistance.toFixed(1)} km`;
   document.getElementById('current-loc-display').innerText = memory.currentLocation || "None";
@@ -519,19 +606,31 @@ function setupEventListeners() {
 
     const startVal = startInput.value.trim() || memory.currentLocation || "Phagwara";
     const returnToStart = document.getElementById('return-start-check').checked;
+    const ignoreMemory = document.getElementById('ignore-memory-check') ? document.getElementById('ignore-memory-check').checked : false;
 
-    const result = planAgentTrip(selectedStops, startVal, returnToStart);
+    const result = planAgentTrip(selectedStops, startVal, returnToStart, ignoreMemory);
     renderRouteOnMap(result);
   });
 
-  // Reset Memory Button
-  document.getElementById('reset-memory-btn').addEventListener('click', () => {
+  // Reset & Clear Memory Action Helper
+  const clearMemoryAction = () => {
     memory.visited = [];
     memory.currentLocation = "Phagwara";
     memory.distanceCache = {};
+    memory.tripLog = [];
     memory.totalDistance = 0.0;
+    localStorage.removeItem('punjab_agent_memory');
     updateMemoryUI(null);
-  });
+  };
+
+  const resetBtn = document.getElementById('reset-memory-btn');
+  if (resetBtn) resetBtn.addEventListener('click', clearMemoryAction);
+
+  const clearBtn = document.getElementById('clear-memory-btn');
+  if (clearBtn) clearBtn.addEventListener('click', clearMemoryAction);
+
+  const headerClearBtn = document.getElementById('header-clear-memory-btn');
+  if (headerClearBtn) headerClearBtn.addEventListener('click', clearMemoryAction);
 
   // Gemini API Key Modal
   const apiKeyBtn = document.getElementById('api-key-btn');
@@ -703,7 +802,8 @@ async function handleSendChat() {
     { key: userApiKey, isBearer: false }
   ];
 
-  const modelsToTry = ['gemini-3.6-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+  const userSelectedModel = localStorage.getItem('gemini_model') || 'gemini-2.5-flash';
+  const modelsToTry = [userSelectedModel, 'gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-3.6-flash', 'gemini-1.5-pro'].filter((v, i, a) => a.indexOf(v) === i);
 
   for (const strat of keysToTry) {
     if (!strat.key) continue;
@@ -831,17 +931,36 @@ function handleParseRouteFromChat(customText = null) {
 }
 
 function smartExtractStops(text) {
-  if (!text) return { start: "Phagwara", stops: [] };
+  if (!text) return { start: memory.currentLocation || "Phagwara", stops: [] };
 
   const textLower = text.toLowerCase();
+  let matchedSpans = []; // array of [startIdx, endIdx]
   let foundLocations = [];
+
+  const GENERIC_EXCLUDE = new Set([
+    "market", "store", "chowk", "main", "mandi", "dhar", "jalan", "mode", "rama", 
+    "town", "stand", "bus stand", "city", "post", "office", "street", "road", "near",
+    "hospital", "gate", "block", "station", "supermarket", "school", "college", "sector"
+  ]);
+
+  const overlaps = (start, end) => {
+    return matchedSpans.some(([s, e]) => (start < e && end > s));
+  };
+
+  const escapeReg = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
   // 1. Landmark Aliases (e.g. golden temple -> Amritsar, lpu -> Phagwara)
   Object.keys(ALIASES).forEach(alias => {
-    if (textLower.includes(alias)) {
-      const canon = ALIASES[alias];
-      if (locationsDB[canon] && !foundLocations.includes(canon)) {
-        foundLocations.push(canon);
+    const canon = ALIASES[alias];
+    if (!locationsDB[canon]) return;
+    const reg = new RegExp('\\b' + escapeReg(alias) + '\\b', 'gi');
+    let match;
+    while ((match = reg.exec(textLower)) !== null) {
+      const start = match.index;
+      const end = match.index + match[0].length;
+      if (!overlaps(start, end)) {
+        if (!foundLocations.includes(canon)) foundLocations.push(canon);
+        matchedSpans.push([start, end]);
       }
     }
   });
@@ -850,25 +969,22 @@ function smartExtractStops(text) {
   const sortedKeys = locationKeys.slice().sort((a, b) => b.length - a.length);
   sortedKeys.forEach(name => {
     const nameLower = name.toLowerCase();
-    if (name.length >= 4 && textLower.includes(nameLower)) {
-      if (!foundLocations.includes(name)) {
-        foundLocations.push(name);
+    if (name.length < 3) return;
+    if (GENERIC_EXCLUDE.has(nameLower)) return;
+
+    const reg = new RegExp('\\b' + escapeReg(nameLower) + '\\b', 'gi');
+    let match;
+    while ((match = reg.exec(textLower)) !== null) {
+      const start = match.index;
+      const end = match.index + match[0].length;
+      if (!overlaps(start, end)) {
+        if (!foundLocations.includes(name)) foundLocations.push(name);
+        matchedSpans.push([start, end]);
       }
     }
   });
 
-  // 3. Fallback token resolution if no long names found
-  if (foundLocations.length === 0) {
-    const tokens = text.split(/[\s,;.!?]+/);
-    tokens.forEach(tok => {
-      const canon = resolveLocation(tok);
-      if (canon && !foundLocations.includes(canon)) {
-        foundLocations.push(canon);
-      }
-    });
-  }
-
-  // 4. Extract explicit starting location ("starting from X", "from X")
+  // 3. Extract explicit starting location ("starting from X", "from X")
   let startLoc = null;
   const startPatterns = [
     /start(?:ing)?\s+(?:from|at)\s+([A-Za-z\s]+?)(?:\s+visit|\s+to|,|\.|$)/i,
@@ -879,7 +995,7 @@ function smartExtractStops(text) {
     const match = text.match(pat);
     if (match && match[1]) {
       const resolved = resolveLocation(match[1].trim());
-      if (resolved) {
+      if (resolved && locationsDB[resolved]) {
         startLoc = resolved;
         break;
       }
