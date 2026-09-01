@@ -78358,5 +78358,315 @@
     "lat": 31.278,
     "lon": 75.676,
     "type": "marketplace"
+  },
+  "McDonald's Phagwara": {
+    "lat": 31.224,
+    "lon": 75.768,
+    "type": "restaurant"
+  },
+  "McDonald's Jalandhar": {
+    "lat": 31.326,
+    "lon": 75.578,
+    "type": "restaurant"
+  },
+  "McDonald's Ludhiana": {
+    "lat": 30.892,
+    "lon": 75.823,
+    "type": "restaurant"
+  },
+  "McDonald's Amritsar": {
+    "lat": 31.637,
+    "lon": 74.879,
+    "type": "restaurant"
+  },
+  "McDonald's Mohali": {
+    "lat": 30.698,
+    "lon": 76.732,
+    "type": "restaurant"
+  },
+  "Subway Jalandhar": {
+    "lat": 31.328,
+    "lon": 75.58,
+    "type": "restaurant"
+  },
+  "Subway Phagwara": {
+    "lat": 31.222,
+    "lon": 75.77,
+    "type": "restaurant"
+  },
+  "Subway Ludhiana": {
+    "lat": 30.895,
+    "lon": 75.825,
+    "type": "restaurant"
+  },
+  "Subway Amritsar": {
+    "lat": 31.639,
+    "lon": 74.875,
+    "type": "restaurant"
+  },
+  "Subway Mohali": {
+    "lat": 30.702,
+    "lon": 76.728,
+    "type": "restaurant"
+  },
+  "Starbucks Jalandhar": {
+    "lat": 31.312,
+    "lon": 75.582,
+    "type": "cafe"
+  },
+  "Starbucks Ludhiana": {
+    "lat": 30.888,
+    "lon": 75.818,
+    "type": "cafe"
+  },
+  "Starbucks Amritsar": {
+    "lat": 31.634,
+    "lon": 74.876,
+    "type": "cafe"
+  },
+  "Starbucks Mohali": {
+    "lat": 30.708,
+    "lon": 76.72,
+    "type": "cafe"
+  },
+  "KFC Jalandhar": {
+    "lat": 31.325,
+    "lon": 75.579,
+    "type": "restaurant"
+  },
+  "KFC Ludhiana": {
+    "lat": 30.89,
+    "lon": 75.822,
+    "type": "restaurant"
+  },
+  "KFC Amritsar": {
+    "lat": 31.636,
+    "lon": 74.877,
+    "type": "restaurant"
+  },
+  "KFC Phagwara": {
+    "lat": 31.221,
+    "lon": 75.769,
+    "type": "restaurant"
+  },
+  "Domino's Pizza Jalandhar": {
+    "lat": 31.33,
+    "lon": 75.581,
+    "type": "restaurant"
+  },
+  "Domino's Pizza Phagwara": {
+    "lat": 31.223,
+    "lon": 75.771,
+    "type": "restaurant"
+  },
+  "Domino's Pizza Ludhiana": {
+    "lat": 30.894,
+    "lon": 75.824,
+    "type": "restaurant"
+  },
+  "Domino's Pizza Amritsar": {
+    "lat": 31.638,
+    "lon": 74.876,
+    "type": "restaurant"
+  },
+  "Burger King Jalandhar": {
+    "lat": 31.324,
+    "lon": 75.577,
+    "type": "restaurant"
+  },
+  "Burger King Ludhiana": {
+    "lat": 30.891,
+    "lon": 75.821,
+    "type": "restaurant"
+  },
+  "Burger King Amritsar": {
+    "lat": 31.635,
+    "lon": 74.878,
+    "type": "restaurant"
+  },
+  "Pizza Hut Jalandhar": {
+    "lat": 31.327,
+    "lon": 75.579,
+    "type": "restaurant"
+  },
+  "Pizza Hut Ludhiana": {
+    "lat": 30.893,
+    "lon": 75.823,
+    "type": "restaurant"
+  },
+  "Haveli Phagwara": {
+    "lat": 31.277908,
+    "lon": 75.676554,
+    "type": "restaurant"
+  },
+  "Lucky Dhaba Phagwara": {
+    "lat": 31.225,
+    "lon": 75.768,
+    "type": "restaurant"
+  },
+  "Kesar Da Dhaba Amritsar": {
+    "lat": 31.624,
+    "lon": 74.877,
+    "type": "restaurant"
+  },
+  "Bharawan Da Dhaba Amritsar": {
+    "lat": 31.622,
+    "lon": 74.875,
+    "type": "restaurant"
+  },
+  "Curo High Street Jalandhar": {
+    "lat": 31.315,
+    "lon": 75.584,
+    "type": "marketplace"
+  },
+  "MBD Neopolis Mall Jalandhar": {
+    "lat": 31.309,
+    "lon": 75.58,
+    "type": "marketplace"
+  },
+  "MBD Neopolis Mall Ludhiana": {
+    "lat": 30.885,
+    "lon": 75.815,
+    "type": "marketplace"
+  },
+  "Pavilion Mall Ludhiana": {
+    "lat": 30.912,
+    "lon": 75.845,
+    "type": "marketplace"
+  },
+  "VR Punjab Mall Mohali": {
+    "lat": 30.752,
+    "lon": 76.658,
+    "type": "marketplace"
+  },
+  "Nexus Elante Mall": {
+    "lat": 30.705,
+    "lon": 76.801,
+    "type": "marketplace"
+  },
+  "Nexus Amritsar Mall": {
+    "lat": 31.642,
+    "lon": 74.901,
+    "type": "marketplace"
+  },
+  "LPU Campus": {
+    "lat": 31.254921,
+    "lon": 75.704619,
+    "type": "university"
+  },
+  "Guru Nanak Dev University Amritsar": {
+    "lat": 31.637,
+    "lon": 74.825,
+    "type": "university"
+  },
+  "Punjab Agricultural University Ludhiana": {
+    "lat": 30.902,
+    "lon": 75.808,
+    "type": "university"
+  },
+  "Thapar Institute Patiala": {
+    "lat": 30.356,
+    "lon": 76.364,
+    "type": "university"
+  },
+  "Chandigarh University Gharuan": {
+    "lat": 30.768,
+    "lon": 76.575,
+    "type": "university"
+  },
+  "IIT Ropar": {
+    "lat": 30.972,
+    "lon": 76.473,
+    "type": "university"
+  },
+  "NIT Jalandhar": {
+    "lat": 31.396,
+    "lon": 75.535,
+    "type": "university"
+  },
+  "Golden Temple Amritsar": {
+    "lat": 31.62,
+    "lon": 74.876,
+    "type": "place_of_worship"
+  },
+  "Durgiana Temple Amritsar": {
+    "lat": 31.633,
+    "lon": 74.867,
+    "type": "place_of_worship"
+  },
+  "Jallianwala Bagh Amritsar": {
+    "lat": 31.621,
+    "lon": 74.88,
+    "type": "historic"
+  },
+  "Attari Wagah Border": {
+    "lat": 31.604,
+    "lon": 74.575,
+    "type": "historic"
+  },
+  "Virasat-e-Khalsa Anandpur Sahib": {
+    "lat": 31.235,
+    "lon": 76.502,
+    "type": "historic"
+  },
+  "Takht Sri Keshgarh Sahib": {
+    "lat": 31.236,
+    "lon": 76.501,
+    "type": "place_of_worship"
+  },
+  "Devi Talab Mandir Jalandhar": {
+    "lat": 31.341,
+    "lon": 75.586,
+    "type": "place_of_worship"
+  },
+  "Sukhna Lake Mohali": {
+    "lat": 30.742,
+    "lon": 76.818,
+    "type": "park"
+  },
+  "Rock Garden Mohali": {
+    "lat": 30.752,
+    "lon": 76.804,
+    "type": "park"
+  },
+  "Qila Mubarak Patiala": {
+    "lat": 30.327,
+    "lon": 76.401,
+    "type": "historic"
+  },
+  "Qila Mubarak Bathinda": {
+    "lat": 30.211,
+    "lon": 74.945,
+    "type": "historic"
+  },
+  "Amritsar Airport": {
+    "lat": 31.71,
+    "lon": 74.797,
+    "type": "aeroway"
+  },
+  "Mohali Chandigarh Airport": {
+    "lat": 30.673,
+    "lon": 76.788,
+    "type": "aeroway"
+  },
+  "Jalandhar City Railway Station": {
+    "lat": 31.334,
+    "lon": 75.587,
+    "type": "station"
+  },
+  "Ludhiana Railway Station": {
+    "lat": 30.904,
+    "lon": 75.861,
+    "type": "station"
+  },
+  "Amritsar Railway Station": {
+    "lat": 31.634,
+    "lon": 74.872,
+    "type": "station"
+  },
+  "Phagwara Junction Railway Station": {
+    "lat": 31.222,
+    "lon": 75.772,
+    "type": "station"
   }
 }

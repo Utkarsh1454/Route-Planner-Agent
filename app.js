@@ -174,9 +174,21 @@ async function loadLocations() {
   }
 }
 
-function resolveLocation(name) {
+function resolveLocation(name, contextStart = null) {
   if (!name) return null;
   const clean = name.trim();
+
+  // Contextual branch matching (e.g. McDonald's Phagwara / Subway Jalandhar / Starbucks Ludhiana)
+  const currentStart = contextStart || startLocation || memory.currentLocation || "Phagwara";
+  const startLocClean = currentStart ? currentStart.trim() : "";
+  
+  if (startLocClean) {
+    const candidate = `${clean} ${startLocClean}`;
+    if (locationsDB[candidate]) return candidate;
+    const candidateLower = candidate.toLowerCase();
+    if (locationLookup[candidateLower]) return locationLookup[candidateLower];
+  }
+
   if (locationsDB[clean]) return clean;
 
   const lower = clean.toLowerCase();
@@ -373,7 +385,7 @@ function orderStops(start, stops, returnToStart = false) {
 // Top-level Plan Trip function using Agent Memory
 function planAgentTrip(requestedStops, start = null, returnToStart = false, ignoreMemory = false) {
   const canonStart = start ? resolveLocation(start) : (memory.currentLocation || "Phagwara");
-  const canonGoals = requestedStops.map(s => resolveLocation(s)).filter(Boolean);
+  const canonGoals = requestedStops.map(s => resolveLocation(s, canonStart)).filter(Boolean);
 
   let todo = canonGoals;
   let skipped = [];

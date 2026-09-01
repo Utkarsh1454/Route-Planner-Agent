@@ -161,12 +161,22 @@ GENERIC_EXCLUDES = {
 }
 
 
-def resolve_location_name(name: str) -> str:
+def resolve_location_name(name: str, context_start: Optional[str] = None) -> str:
     """Finds exact, alias, or fuzzy location name matching in Punjab OSM database."""
     if not name:
         raise ValueError("Location name cannot be empty.")
     
     clean_name = name.strip()
+    
+    # 0. Contextual branch matching (e.g. McDonald's Phagwara / Subway Jalandhar)
+    if context_start:
+        start_clean = context_start.strip()
+        candidate = f"{clean_name} {start_clean}"
+        if candidate in LOCATIONS:
+            return candidate
+        if candidate.lower() in LOCATION_LOOKUP:
+            return LOCATION_LOOKUP[candidate.lower()]
+
     if clean_name in LOCATIONS:
         return clean_name
         
@@ -253,7 +263,7 @@ def order_stops(
     Runs greedy nearest-neighbor loop + 2-opt path optimization pass.
     """
     canon_start = resolve_location_name(start)
-    canon_stops = [resolve_location_name(s) for s in stops]
+    canon_stops = [resolve_location_name(s, canon_start) for s in stops]
 
     remaining = list(canon_stops)
     route = [canon_start]
