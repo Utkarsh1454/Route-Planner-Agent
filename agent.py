@@ -161,15 +161,25 @@ GENERIC_EXCLUDES = {
 }
 
 
+GENERIC_CHAINS = {
+    "mcdonald's", "mcdonalds", "subway", "starbucks", "kfc", "domino's", "dominos", "burger king", "pizza hut"
+}
+
+
 def resolve_location_name(name: str, context_start: Optional[str] = None) -> str:
     """Finds exact, alias, or fuzzy location name matching in Punjab OSM database."""
     if not name:
         raise ValueError("Location name cannot be empty.")
     
     clean_name = name.strip()
+    lower = clean_name.lower()
     
-    # 0. Contextual branch matching (e.g. McDonald's Phagwara / Subway Jalandhar)
-    if context_start:
+    # 1. Landmark Aliases
+    if lower in ALIASES and ALIASES[lower] in LOCATIONS:
+        return ALIASES[lower]
+
+    # 2. Generic Brand Chain Contextual Branch matching
+    if lower in GENERIC_CHAINS and context_start:
         start_clean = context_start.strip()
         candidate = f"{clean_name} {start_clean}"
         if candidate in LOCATIONS:
@@ -177,16 +187,9 @@ def resolve_location_name(name: str, context_start: Optional[str] = None) -> str
         if candidate.lower() in LOCATION_LOOKUP:
             return LOCATION_LOOKUP[candidate.lower()]
 
+    # 3. Exact Key Match in Database
     if clean_name in LOCATIONS:
         return clean_name
-        
-    lower = clean_name.lower()
-    
-    # 0. Common landmark aliases
-    if lower in ALIASES and ALIASES[lower] in LOCATIONS:
-        return ALIASES[lower]
-
-    # 1. Exact case-insensitive match
     if lower in LOCATION_LOOKUP:
         return LOCATION_LOOKUP[lower]
     

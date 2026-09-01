@@ -174,25 +174,31 @@ async function loadLocations() {
   }
 }
 
+const GENERIC_CHAINS = new Set([
+  "mcdonald's", "mcdonalds", "subway", "starbucks", "kfc", "domino's", "dominos", "burger king", "pizza hut"
+]);
+
 function resolveLocation(name, contextStart = null) {
   if (!name) return null;
   const clean = name.trim();
+  const lower = clean.toLowerCase();
 
-  // Contextual branch matching (e.g. McDonald's Phagwara / Subway Jalandhar / Starbucks Ludhiana)
-  const currentStart = contextStart || startLocation || memory.currentLocation || "Phagwara";
-  const startLocClean = currentStart ? currentStart.trim() : "";
-  
-  if (startLocClean) {
-    const candidate = `${clean} ${startLocClean}`;
-    if (locationsDB[candidate]) return candidate;
-    const candidateLower = candidate.toLowerCase();
-    if (locationLookup[candidateLower]) return locationLookup[candidateLower];
+  // 1. Landmark Aliases (e.g. golden temple -> Amritsar, lpu -> Phagwara, eastwood -> Eastwood Village)
+  if (ALIASES[lower] && locationsDB[ALIASES[lower]]) {
+    return ALIASES[lower];
   }
 
-  if (locationsDB[clean]) return clean;
+  // 2. Generic Brand Chain contextual branch matching
+  const currentStart = contextStart || startLocation || memory.currentLocation;
+  if (GENERIC_CHAINS.has(lower) && currentStart) {
+    const startClean = currentStart.trim();
+    const candidate = `${clean} ${startClean}`;
+    if (locationsDB[candidate]) return candidate;
+    if (locationLookup[candidate.toLowerCase()]) return locationLookup[candidate.toLowerCase()];
+  }
 
-  const lower = clean.toLowerCase();
-  if (ALIASES[lower] && locationsDB[ALIASES[lower]]) return ALIASES[lower];
+  // 3. Exact Key Match in Database
+  if (locationsDB[clean]) return clean;
   if (locationLookup[lower]) return locationLookup[lower];
 
   const GENERIC_EXCLUDE = new Set([
