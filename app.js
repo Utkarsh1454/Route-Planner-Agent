@@ -967,12 +967,12 @@ async function handleSendChat() {
   ];
 
   let userSelectedModel = localStorage.getItem('gemini_model') || 'gemini-2.5-flash';
-  if (userSelectedModel.includes('3.6') || userSelectedModel === 'gemini-1.5-pro' || userSelectedModel === 'gemini-1.5-flash') {
+  if (userSelectedModel.includes('3.6') || userSelectedModel.includes('1.5-pro') || userSelectedModel.includes('2.5-pro') || userSelectedModel === 'gemini-1.5-flash') {
     userSelectedModel = 'gemini-2.5-flash';
     localStorage.setItem('gemini_model', 'gemini-2.5-flash');
   }
 
-  const modelsToTry = [userSelectedModel, 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-2.5-pro'].filter((v, i, a) => a.indexOf(v) === i);
+  const modelsToTry = [userSelectedModel, 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-3.1-pro-preview'].filter((v, i, a) => a.indexOf(v) === i);
 
   for (const strat of keysToTry) {
     if (!strat.key) continue;
