@@ -635,8 +635,6 @@ async function handleSendChat() {
   inputEl.value = '';
 
   const apiKey = getActiveApiKey();
-  // List of models to try in sequence for automatic regional & version fallback
-  const modelsToTry = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-flash'];
 
   // Append user turn to conversation history
   geminiChatHistory.push({
