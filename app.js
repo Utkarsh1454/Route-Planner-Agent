@@ -527,6 +527,76 @@ function updateMemoryUI(latestResult) {
 // 5. User Event Handlers
 // ---------------------------------------------------------------------------
 function setupEventListeners() {
+  function getLocationMeta(name) {
+  const loc = locationsDB[name] || {};
+  const rawType = (loc.type || 'city').toLowerCase();
+
+  let icon = 'fa-solid fa-location-dot';
+  let badgeClass = 'type-city';
+  let label = 'City / Town';
+
+  if (rawType.includes('city') || rawType.includes('town')) {
+    icon = 'fa-solid fa-city';
+    badgeClass = 'type-city';
+    label = 'City / Town';
+  } else if (rawType.includes('university') || rawType.includes('college') || rawType.includes('school')) {
+    icon = 'fa-solid fa-graduation-cap';
+    badgeClass = 'type-edu';
+    label = 'Campus / Edu';
+  } else if (rawType.includes('market') || rawType.includes('supermarket') || rawType.includes('mall') || rawType.includes('shop')) {
+    icon = 'fa-solid fa-bag-shopping';
+    badgeClass = 'type-shop';
+    label = 'Marketplace';
+  } else if (rawType.includes('restaurant') || rawType.includes('cafe') || rawType.includes('food') || rawType.includes('fast_food')) {
+    icon = 'fa-solid fa-utensils';
+    badgeClass = 'type-food';
+    label = 'Restaurant / Dining';
+  } else if (rawType.includes('hospital') || rawType.includes('clinic') || rawType.includes('pharmacy')) {
+    icon = 'fa-solid fa-hospital';
+    badgeClass = 'type-health';
+    label = 'Hospital / Medical';
+  } else if (rawType.includes('bus') || rawType.includes('station') || rawType.includes('transit')) {
+    icon = 'fa-solid fa-bus';
+    badgeClass = 'type-transit';
+    label = 'Transit Terminal';
+  } else if (rawType.includes('hotel') || rawType.includes('guest') || rawType.includes('lodging')) {
+    icon = 'fa-solid fa-hotel';
+    badgeClass = 'type-hotel';
+    label = 'Hotel / Lodging';
+  } else if (rawType.includes('worship') || rawType.includes('temple') || rawType.includes('gurdwara')) {
+    icon = 'fa-solid fa-gopuram';
+    badgeClass = 'type-worship';
+    label = 'Place of Worship';
+  } else if (rawType.includes('suburb') || rawType.includes('village')) {
+    icon = 'fa-solid fa-house-chimney';
+    badgeClass = 'type-village';
+    label = 'Village / Area';
+  }
+
+  const coords = (loc.lat && loc.lon) ? `GPS: ${loc.lat.toFixed(2)}°N, ${loc.lon.toFixed(2)}°E` : 'Punjab Location';
+  return { icon, badgeClass, label, coords };
+}
+
+function renderSuggestionItemHtml(name) {
+  const meta = getLocationMeta(name);
+  return `
+    <div class="suggestion-item" data-val="${name}">
+      <div class="suggestion-main">
+        <i class="${meta.icon} suggestion-icon"></i>
+        <div class="suggestion-text">
+          <div class="suggestion-name">${name}</div>
+          <div class="suggestion-coords">${meta.coords}</div>
+        </div>
+      </div>
+      <span class="type-badge ${meta.badgeClass}">${meta.label}</span>
+    </div>
+  `;
+}
+
+// ---------------------------------------------------------------------------
+// 5. User Event Handlers
+// ---------------------------------------------------------------------------
+function setupEventListeners() {
   // Start Input Suggestions
   const startInput = document.getElementById('start-input');
   const startSuggestions = document.getElementById('start-suggestions');
@@ -534,12 +604,7 @@ function setupEventListeners() {
   startInput.addEventListener('input', (e) => {
     const matches = searchLocations(e.target.value);
     if (matches.length > 0) {
-      startSuggestions.innerHTML = matches.map(m => `
-        <div class="suggestion-item" data-val="${m}">
-          <span>${m}</span>
-          <span class="type-badge">${locationsDB[m].type || 'city'}</span>
-        </div>
-      `).join('');
+      startSuggestions.innerHTML = matches.map(m => renderSuggestionItemHtml(m)).join('');
       startSuggestions.style.display = 'block';
     } else {
       startSuggestions.style.display = 'none';
@@ -562,12 +627,7 @@ function setupEventListeners() {
   stopInput.addEventListener('input', (e) => {
     const matches = searchLocations(e.target.value);
     if (matches.length > 0) {
-      stopSuggestions.innerHTML = matches.map(m => `
-        <div class="suggestion-item" data-val="${m}">
-          <span>${m}</span>
-          <span class="type-badge">${locationsDB[m].type || 'city'}</span>
-        </div>
-      `).join('');
+      stopSuggestions.innerHTML = matches.map(m => renderSuggestionItemHtml(m)).join('');
       stopSuggestions.style.display = 'block';
     } else {
       stopSuggestions.style.display = 'none';

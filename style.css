@@ -258,36 +258,77 @@ input[type="text"]:focus, textarea:focus, select:focus {
   top: 100%;
   left: 0;
   right: 0;
-  max-height: 180px;
+  max-height: 230px;
   overflow-y: auto;
   background: #0f172a;
   border: 1px solid var(--border-focus);
   border-top: none;
   border-radius: 0 0 var(--radius-md) var(--radius-md);
-  z-index: 100;
+  z-index: 1000;
   display: none;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
 }
 
 .suggestion-item {
-  padding: 8px 14px;
+  padding: 10px 14px;
   font-size: 13px;
   color: var(--text-main);
   cursor: pointer;
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background 0.15s ease;
 }
 
 .suggestion-item:hover {
-  background: rgba(56, 189, 248, 0.15);
+  background: rgba(56, 189, 248, 0.18);
+  color: #ffffff;
+}
+
+.suggestion-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.suggestion-icon {
+  font-size: 14px;
   color: var(--primary-blue);
+  width: 18px;
+  text-align: center;
+}
+
+.suggestion-name {
+  font-weight: 600;
+  color: #f8fafc;
+  font-size: 13px;
+}
+
+.suggestion-coords {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 1px;
 }
 
 .suggestion-item .type-badge {
   font-size: 10px;
-  color: var(--text-dim);
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 12px;
   text-transform: capitalize;
+  white-space: nowrap;
 }
+
+.type-badge.type-city { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+.type-badge.type-edu { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+.type-badge.type-shop { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+.type-badge.type-food { background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.3); }
+.type-badge.type-health { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+.type-badge.type-transit { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+.type-badge.type-hotel { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+.type-badge.type-worship { background: rgba(251, 191, 36, 0.15); color: #fcd34d; border: 1px solid rgba(251, 191, 36, 0.3); }
+.type-badge.type-village { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); }
 
 /* Quick Chips */
 .quick-chips {
