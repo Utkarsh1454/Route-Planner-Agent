@@ -43,7 +43,10 @@ const ALIASES = {
   "elgin cafe": "Elgin Cafe",
   "bistro flamme bois": "Bistro Flamme Bois",
   "virgin courtyard": "Virgin Courtyard",
-  "the back room": "The Back Room"
+  "the back room": "The Back Room",
+  "rangla punjab": "Rangla Punjab",
+  "rangla punjab haveli": "Rangla Punjab",
+  "haveli rangla punjab": "Rangla Punjab"
 };
 
 // Initialize Application
@@ -212,7 +215,8 @@ function resolveLocation(name, contextStart = null) {
     "town", "stand", "bus stand", "city", "post", "office", "street", "road", "near",
     "hospital", "gate", "block", "station", "supermarket", "school", "college", "sector",
     "punjab", "india", "pakistan", "state", "country", "district", "region", "province", "area",
-    "lake", "park", "cafe", "restaurant", "bistro", "bar", "room", "hotel", "mall", "court", "center", "view", "spot", "place"
+    "lake", "park", "cafe", "restaurant", "bistro", "bar", "room", "hotel", "mall", "court", "center", "view", "spot", "place",
+    "alike", "simply", "head", "direct", "just", "drive", "highway", "cab", "auto", "route", "best", "vibrant", "popular", "students", "visitors"
   ]);
 
   // Exact word boundary match on dataset keys
@@ -1250,7 +1254,8 @@ function smartExtractStops(text) {
     "town", "stand", "bus stand", "city", "post", "office", "street", "road", "near",
     "hospital", "gate", "block", "station", "supermarket", "school", "college", "sector",
     "punjab", "india", "pakistan", "state", "country", "district", "region", "province", "area",
-    "lake", "park", "cafe", "restaurant", "bistro", "bar", "room", "hotel", "mall", "court", "center", "view", "spot", "place"
+    "lake", "park", "cafe", "restaurant", "bistro", "bar", "room", "hotel", "mall", "court", "center", "view", "spot", "place",
+    "alike", "simply", "head", "direct", "just", "drive", "highway", "cab", "auto", "route", "best", "vibrant", "popular", "students", "visitors"
   ]);
 
   const overlaps = (start, end) => {
@@ -1319,10 +1324,32 @@ function smartExtractStops(text) {
     startLoc = memory.currentLocation || "Phagwara";
   }
 
-  const stops = foundLocations.filter(loc => loc !== startLoc);
+  const MAJOR_CITIES_SET = new Set(['Amritsar', 'Ludhiana', 'Jalandhar', 'Patiala', 'Mohali', 'Bathinda', 'Pathankot', 'Hoshiarpur', 'Moga', 'Phagwara', 'Rupnagar', 'Firozpur', 'Kapurthala']);
+
+  // Filter out start location
+  const curStart = startLoc || memory.currentLocation || "Phagwara";
+  let cleanStops = foundLocations.filter(loc => loc !== curStart && loc !== 'LPU' && loc !== 'LPU Campus');
+
+  // Deduplicate stops with exact same coordinates
+  const uniqueStops = [];
+  const seenCoords = new Set();
+  for (const s of cleanStops) {
+    const loc = locationsDB[s];
+    if (loc && loc.lat && loc.lon) {
+      const coordKey = `${loc.lat.toFixed(3)},${loc.lon.toFixed(3)}`;
+      if (seenCoords.has(coordKey)) continue;
+      seenCoords.add(coordKey);
+    }
+    uniqueStops.push(s);
+  }
+
+  // If specific landmark recommendations exist, filter out broad regional cities mentioned in address/highway context
+  const hasSpecificLandmarks = uniqueStops.some(s => !MAJOR_CITIES_SET.has(s));
+  const finalStops = hasSpecificLandmarks ? uniqueStops.filter(s => !MAJOR_CITIES_SET.has(s)) : uniqueStops;
+
   return {
-    start: startLoc,
-    stops: stops.length > 0 ? stops : foundLocations
+    start: curStart,
+    stops: finalStops.length > 0 ? finalStops : cleanStops
   };
 }
 
