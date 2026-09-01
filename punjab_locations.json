@@ -78668,5 +78668,75 @@
     "lat": 31.222,
     "lon": 75.772,
     "type": "station"
+  },
+  "Sukhna Lake": {
+    "lat": 30.742,
+    "lon": 76.818,
+    "type": "park"
+  },
+  "Sukhna Lake Chandigarh": {
+    "lat": 30.742,
+    "lon": 76.818,
+    "type": "park"
+  },
+  "Elgin Cafe": {
+    "lat": 31.648,
+    "lon": 74.892,
+    "type": "restaurant"
+  },
+  "Elgin Cafe Amritsar": {
+    "lat": 31.648,
+    "lon": 74.892,
+    "type": "restaurant"
+  },
+  "Bistro Flamme Bois": {
+    "lat": 30.887,
+    "lon": 75.82,
+    "type": "restaurant"
+  },
+  "Bistro Flamme Bois Ludhiana": {
+    "lat": 30.887,
+    "lon": 75.82,
+    "type": "restaurant"
+  },
+  "Virgin Courtyard": {
+    "lat": 30.738,
+    "lon": 76.785,
+    "type": "restaurant"
+  },
+  "Virgin Courtyard Chandigarh": {
+    "lat": 30.738,
+    "lon": 76.785,
+    "type": "restaurant"
+  },
+  "The Back Room": {
+    "lat": 30.735,
+    "lon": 76.78,
+    "type": "cafe"
+  },
+  "The Back Room Chandigarh": {
+    "lat": 30.735,
+    "lon": 76.78,
+    "type": "cafe"
+  },
+  "Nikku Park Jalandhar": {
+    "lat": 31.32,
+    "lon": 75.578,
+    "type": "park"
+  },
+  "Rose Garden Ludhiana": {
+    "lat": 30.906,
+    "lon": 75.836,
+    "type": "park"
+  },
+  "Rakh Bagh Ludhiana": {
+    "lat": 30.908,
+    "lon": 75.845,
+    "type": "park"
+  },
+  "Company Bagh Amritsar": {
+    "lat": 31.638,
+    "lon": 74.876,
+    "type": "park"
   }
 }

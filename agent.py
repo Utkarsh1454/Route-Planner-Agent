@@ -151,6 +151,11 @@ ALIASES: Dict[str, str] = {
     "wagah border": "Amritsar",
     "jallianwala bagh": "Amritsar",
     "durgiana mandir": "Amritsar",
+    "sukhna lake": "Sukhna Lake",
+    "elgin cafe": "Elgin Cafe",
+    "bistro flamme bois": "Bistro Flamme Bois",
+    "virgin courtyard": "Virgin Courtyard",
+    "the back room": "The Back Room"
 }
 
 
@@ -158,7 +163,8 @@ GENERIC_EXCLUDES = {
     "market", "store", "chowk", "main", "mandi", "dhar", "jalan", "mode", "rama", 
     "town", "stand", "bus stand", "city", "post", "office", "street", "road", "near",
     "hospital", "gate", "block", "station", "supermarket", "school", "college", "sector",
-    "punjab", "india", "pakistan", "state", "country", "district", "region", "province", "area"
+    "punjab", "india", "pakistan", "state", "country", "district", "region", "province", "area",
+    "lake", "park", "cafe", "restaurant", "bistro", "bar", "room", "hotel", "mall", "court", "center", "view", "spot", "place"
 }
 
 
