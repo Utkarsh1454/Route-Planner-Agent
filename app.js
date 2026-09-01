@@ -524,10 +524,9 @@ function updateMemoryUI(latestResult) {
 }
 
 // ---------------------------------------------------------------------------
-// 5. User Event Handlers
+// 5. Address Helper & Search Renderers
 // ---------------------------------------------------------------------------
-function setupEventListeners() {
-  const MAJOR_REGIONS = {
+const MAJOR_REGIONS = {
   'Amritsar': { lat: 31.635666, lon: 74.87875 },
   'Ludhiana': { lat: 30.909016, lon: 75.851601 },
   'Jalandhar': { lat: 31.332376, lon: 75.576889 },
