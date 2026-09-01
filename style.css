@@ -258,7 +258,7 @@ input[type="text"]:focus, textarea:focus, select:focus {
   top: 100%;
   left: 0;
   right: 0;
-  max-height: 230px;
+  max-height: 290px;
   overflow-y: auto;
   background: #0f172a;
   border: 1px solid var(--border-focus);
@@ -266,7 +266,16 @@ input[type="text"]:focus, textarea:focus, select:focus {
   border-radius: 0 0 var(--radius-md) var(--radius-md);
   z-index: 1000;
   display: none;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.75);
+}
+
+.suggestions-box::-webkit-scrollbar {
+  width: 6px;
+}
+
+.suggestions-box::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.3);
+  border-radius: 4px;
 }
 
 .suggestion-item {

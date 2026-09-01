@@ -214,12 +214,43 @@ function resolveLocation(name) {
 }
 
 function searchLocations(query) {
-  if (!query || query.length < 2) return [];
-  const qLower = query.toLowerCase();
-  
-  // Exact & prefix matches first
-  const matches = locationKeys.filter(k => k.toLowerCase().includes(qLower));
-  return matches.slice(0, 8);
+  if (!query || query.trim().length < 2) return [];
+  const qLower = query.toLowerCase().trim();
+  const tokens = qLower.split(/\s+/).filter(t => t.length > 1);
+
+  const exact = [];
+  const prefix = [];
+  const allTokens = [];
+  const substring = [];
+
+  for (let i = 0; i < locationKeys.length; i++) {
+    const k = locationKeys[i];
+    const kLower = k.toLowerCase();
+
+    if (kLower === qLower) {
+      exact.push(k);
+    } else if (kLower.startsWith(qLower)) {
+      prefix.push(k);
+    } else if (tokens.length > 1 && tokens.every(t => kLower.includes(t))) {
+      allTokens.push(k);
+    } else if (kLower.includes(qLower)) {
+      substring.push(k);
+    }
+  }
+
+  const combined = [];
+  const addItems = (arr) => {
+    for (let j = 0; j < arr.length; j++) {
+      if (!combined.includes(arr[j])) combined.push(arr[j]);
+    }
+  };
+
+  addItems(exact);
+  addItems(prefix);
+  addItems(allTokens);
+  addItems(substring);
+
+  return combined.slice(0, 25);
 }
 
 // ---------------------------------------------------------------------------
