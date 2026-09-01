@@ -527,7 +527,46 @@ function updateMemoryUI(latestResult) {
 // 5. User Event Handlers
 // ---------------------------------------------------------------------------
 function setupEventListeners() {
-  function getLocationMeta(name) {
+  const MAJOR_REGIONS = {
+  'Amritsar': { lat: 31.635666, lon: 74.87875 },
+  'Ludhiana': { lat: 30.909016, lon: 75.851601 },
+  'Jalandhar': { lat: 31.332376, lon: 75.576889 },
+  'Patiala': { lat: 30.330199, lon: 76.400766 },
+  'Mohali': { lat: 30.69088, lon: 76.711488 },
+  'Bathinda': { lat: 30.206791, lon: 74.94637 },
+  'Pathankot': { lat: 32.2746, lon: 75.6529 },
+  'Hoshiarpur': { lat: 31.5295, lon: 75.9103 },
+  'Moga': { lat: 30.822341, lon: 75.173097 },
+  'Phagwara': { lat: 31.220673, lon: 75.769646 },
+  'Rupnagar': { lat: 30.968837, lon: 76.526088 },
+  'Firozpur': { lat: 30.9237, lon: 74.6119 },
+  'Kapurthala': { lat: 31.38, lon: 75.38 },
+  'Sangrur': { lat: 30.2458, lon: 75.8423 },
+  'Faridkot': { lat: 30.6769, lon: 74.7577 },
+  'Gurdaspur': { lat: 32.0419, lon: 75.4053 },
+  'Fatehgarh Sahib': { lat: 30.6482, lon: 76.3986 },
+  'Tarn Taran': { lat: 31.4518, lon: 74.9269 },
+  'Barnala': { lat: 30.3819, lon: 75.5469 },
+  'Mansa': { lat: 29.9882, lon: 75.3856 },
+  'Fazilka': { lat: 30.4036, lon: 74.0267 },
+  'Muktsar': { lat: 30.4754, lon: 74.5165 }
+};
+
+function getNearestRegion(lat, lon) {
+  if (!lat || !lon) return "Punjab";
+  let minD = Infinity;
+  let bestRegion = "Punjab";
+  for (const [region, coords] of Object.entries(MAJOR_REGIONS)) {
+    const d = Math.hypot(lat - coords.lat, lon - coords.lon);
+    if (d < minD) {
+      minD = d;
+      bestRegion = region;
+    }
+  }
+  return bestRegion;
+}
+
+function getLocationMeta(name) {
   const loc = locationsDB[name] || {};
   const rawType = (loc.type || 'city').toLowerCase();
 
@@ -542,7 +581,7 @@ function setupEventListeners() {
   } else if (rawType.includes('university') || rawType.includes('college') || rawType.includes('school')) {
     icon = 'fa-solid fa-graduation-cap';
     badgeClass = 'type-edu';
-    label = 'Campus / Edu';
+    label = 'School / Edu';
   } else if (rawType.includes('market') || rawType.includes('supermarket') || rawType.includes('mall') || rawType.includes('shop')) {
     icon = 'fa-solid fa-bag-shopping';
     badgeClass = 'type-shop';
@@ -567,14 +606,22 @@ function setupEventListeners() {
     icon = 'fa-solid fa-gopuram';
     badgeClass = 'type-worship';
     label = 'Place of Worship';
-  } else if (rawType.includes('suburb') || rawType.includes('village')) {
+  } else if (rawType.includes('police')) {
+    icon = 'fa-solid fa-shield-halved';
+    badgeClass = 'type-police';
+    label = 'Police Station';
+  } else if (rawType.includes('suburb') || rawType.includes('village') || rawType.includes('residential')) {
     icon = 'fa-solid fa-house-chimney';
     badgeClass = 'type-village';
-    label = 'Village / Area';
+    label = 'Area / Village';
   }
 
-  const coords = (loc.lat && loc.lon) ? `GPS: ${loc.lat.toFixed(2)}°N, ${loc.lon.toFixed(2)}°E` : 'Punjab Location';
-  return { icon, badgeClass, label, coords };
+  const region = getNearestRegion(loc.lat, loc.lon);
+  const addressText = (name.toLowerCase() === region.toLowerCase())
+    ? `Major District, Punjab • GPS: ${loc.lat ? loc.lat.toFixed(2) : 0}°N, ${loc.lon ? loc.lon.toFixed(2) : 0}°E`
+    : `Near ${region} Region, Punjab • GPS: ${loc.lat ? loc.lat.toFixed(2) : 0}°N, ${loc.lon ? loc.lon.toFixed(2) : 0}°E`;
+
+  return { icon, badgeClass, label, addressText };
 }
 
 function renderSuggestionItemHtml(name) {
@@ -585,7 +632,7 @@ function renderSuggestionItemHtml(name) {
         <i class="${meta.icon} suggestion-icon"></i>
         <div class="suggestion-text">
           <div class="suggestion-name">${name}</div>
-          <div class="suggestion-coords">${meta.coords}</div>
+          <div class="suggestion-address"><i class="fa-solid fa-map-pin" style="font-size:9px; opacity:0.7;"></i> ${meta.addressText}</div>
         </div>
       </div>
       <span class="type-badge ${meta.badgeClass}">${meta.label}</span>

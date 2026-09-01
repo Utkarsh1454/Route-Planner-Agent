@@ -305,7 +305,7 @@ input[type="text"]:focus, textarea:focus, select:focus {
   font-size: 13px;
 }
 
-.suggestion-coords {
+.suggestion-address {
   font-size: 10px;
   color: var(--text-muted);
   margin-top: 1px;
@@ -328,6 +328,7 @@ input[type="text"]:focus, textarea:focus, select:focus {
 .type-badge.type-transit { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
 .type-badge.type-hotel { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
 .type-badge.type-worship { background: rgba(251, 191, 36, 0.15); color: #fcd34d; border: 1px solid rgba(251, 191, 36, 0.3); }
+.type-badge.type-police { background: rgba(239, 68, 68, 0.2); color: #fb7185; border: 1px solid rgba(239, 68, 68, 0.4); }
 .type-badge.type-village { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); }
 
 /* Quick Chips */
