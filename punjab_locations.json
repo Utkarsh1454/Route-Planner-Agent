@@ -78348,5 +78348,15 @@
     "lat": 30.894255,
     "lon": 75.869731,
     "type": "Chowk"
+  },
+  "Eastwood Village": {
+    "lat": 31.278,
+    "lon": 75.676,
+    "type": "marketplace"
+  },
+  "Eastwood Mall": {
+    "lat": 31.278,
+    "lon": 75.676,
+    "type": "marketplace"
   }
 }

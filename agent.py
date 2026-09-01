@@ -142,13 +142,22 @@ ALIASES: Dict[str, str] = {
     "sri harmandir sahib": "Amritsar",
     "lpu": "Phagwara",
     "lovely professional university": "Phagwara",
+    "eastwood": "Eastwood Village",
+    "eastwood village": "Eastwood Village",
+    "eastwood mall": "Eastwood Mall",
+    "eastwood village mall": "Eastwood Mall",
+    "attari border": "Amritsar",
+    "wagah border": "Amritsar",
+    "jallianwala bagh": "Amritsar",
+    "durgiana mandir": "Amritsar",
 }
 
 
 GENERIC_EXCLUDES = {
     "market", "store", "chowk", "main", "mandi", "dhar", "jalan", "mode", "rama", 
     "town", "stand", "bus stand", "city", "post", "office", "street", "road", "near",
-    "hospital", "gate", "block", "station", "supermarket", "school", "college", "sector"
+    "hospital", "gate", "block", "station", "supermarket", "school", "college", "sector",
+    "punjab", "india", "pakistan", "state", "country", "district", "region", "province", "area"
 }
 
 
