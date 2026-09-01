@@ -48,7 +48,7 @@ class TestRoutePlannerAgent(unittest.TestCase):
         self.assertEqual(resolve_location_name("amritsar"), "Amritsar")
         # Alias
         self.assertEqual(resolve_location_name("golden temple"), "Amritsar")
-        self.assertEqual(resolve_location_name("lpu"), "Phagwara")
+        self.assertEqual(resolve_location_name("lpu"), "LPU Campus")
 
     def test_resolve_location_name_invalid(self):
         """Test that invalid non-existent location names raise ValueError."""
