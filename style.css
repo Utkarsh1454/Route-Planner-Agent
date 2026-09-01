@@ -631,6 +631,62 @@ input[type="text"]:focus, textarea:focus, select:focus {
   background: #0b1120;
 }
 
+/* Custom Map Pin Markers */
+.custom-map-pin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.pin-inner {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+  border: 2px solid #ffffff;
+  transition: transform 0.2s ease;
+}
+
+.custom-map-pin:hover .pin-inner {
+  transform: scale(1.15);
+}
+
+.start-pin .pin-inner {
+  background: linear-gradient(135deg, #ec4899, #f43f5e);
+  box-shadow: 0 0 15px rgba(236, 72, 153, 0.6);
+}
+
+.stop-pin .pin-inner {
+  background: linear-gradient(135deg, #38bdf8, #6366f1);
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.6);
+}
+
+.end-pin .pin-inner {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+}
+
+.pin-label {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #f8fafc;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  margin-top: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
 /* Results Overlay Bar */
 .results-bar {
   position: absolute;

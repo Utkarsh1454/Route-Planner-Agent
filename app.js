@@ -59,25 +59,27 @@ function initMap() {
   // Add Zoom Control to bottom right
   L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-  // Layer 1: OpenStreetMap Standard Detailed Street Map (Full street details, highways, road names)
-  const streetTiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  // Layer 1: High-res CartoDB Voyager Street Map
+  const streetTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd',
     maxZoom: 19
   });
 
-  // Layer 2: Esri World Dark Gray Base
-  const darkTiles = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
-    maxZoom: 16
+  // Layer 2: CartoDB Dark Matter Map
+  const darkTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 19
   });
 
-  // Add street tiles as default layer
-  streetTiles.addTo(map);
+  // Add CartoDB Dark Matter as default matching dark UI theme
+  darkTiles.addTo(map);
 
   // Layer Switcher Control (Top Right)
   const baseMaps = {
-    "🗺️ Streets & Roads (OSM)": streetTiles,
-    "🌙 Dark Canvas": darkTiles
+    "🌙 Dark Canvas (CartoDB)": darkTiles,
+    "🗺️ Streets & Roads (Voyager)": streetTiles
   };
   L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
 }
@@ -358,20 +360,32 @@ async function renderRouteOnMap(result) {
     console.warn("OSRM street routing API unavailable, falling back to direct line polylines:", err);
   }
 
+  if (routePolyline) map.removeLayer(routePolyline);
+  if (window.routePolylineGlow) map.removeLayer(window.routePolylineGlow);
+
   // Fallback to direct leg polylines if OSRM is unreachable
   const finalPolylineCoords = streetPathCoordinates.length > 0 ? streetPathCoordinates : latLons;
 
-  // Draw Route Polyline along streets
+  // Outer Neon Glow Polyline
+  window.routePolylineGlow = L.polyline(finalPolylineCoords, {
+    color: '#38bdf8',
+    weight: 10,
+    opacity: 0.35,
+    lineCap: 'round',
+    lineJoin: 'round'
+  }).addTo(map);
+
+  // Core Driving Route Polyline
   routePolyline = L.polyline(finalPolylineCoords, {
-    color: '#0284c7',
+    color: '#6366f1',
     weight: 5,
-    opacity: 0.9,
+    opacity: 0.95,
     lineCap: 'round',
     lineJoin: 'round'
   }).addTo(map);
 
   // Fit bounds to show full trip
-  map.fitBounds(routePolyline.getBounds(), { padding: [50, 50] });
+  map.fitBounds(routePolyline.getBounds(), { padding: [60, 60] });
 
   // Update Results Bar
   const resultsBar = document.getElementById('results-bar');
@@ -591,6 +605,12 @@ function switchTab(tabName) {
 
   if (targetBtn) targetBtn.classList.add('active');
   if (targetContent) targetContent.classList.add('active');
+
+  if (map) {
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 150);
+  }
 }
 window.switchTab = switchTab;
 
