@@ -900,14 +900,67 @@ function loadApiKey() {
   if (saved && inputEl) {
     inputEl.value = saved;
   }
+  loadAvailableModelsFromApi();
 }
 
-// ---------------------------------------------------------------------------
-// 6. Gemini Flash API Integration (Official systemInstruction + Dynamic Multi-Turn Chat)
-// ---------------------------------------------------------------------------
+async function loadAvailableModelsFromApi() {
+  const apiKey = getActiveApiKey();
+  const selectEl = document.getElementById('gemini-model-select');
+  const btnEl = document.getElementById('list-models-btn');
+  if (!selectEl) return;
+
+  if (!apiKey) {
+    statusLabel.innerHTML = `🔑 API Key missing - please configure in modal`;
+    return;
+  }
+
+  if (btnEl) btnEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Fetching...`;
+
+  try {
+    const url = apiKey.startsWith("AQ.")
+      ? `https://generativelanguage.googleapis.com/v1beta/models`
+      : `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`;
+
+    const headers = {};
+    if (apiKey.startsWith("AQ.")) {
+      headers['Authorization'] = `Bearer ${apiKey}`;
+    }
+
+    const response = await fetch(url, { headers });
+    const data = await response.json();
+
+    if (data.models && Array.isArray(data.models)) {
+      const validModels = data.models.filter(m => 
+        m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent')
+      );
+
+      if (validModels.length > 0) {
+        const saved = localStorage.getItem('gemini_model') || 'gemini-2.5-flash';
+        selectEl.innerHTML = validModels.map(m => {
+          const modelId = m.name.replace('models/', '');
+          const isSelected = (saved === modelId) ? 'selected' : '';
+          const icon = modelId.includes('flash') ? '⚡' : '🧠';
+          const label = m.displayName || modelId;
+          return `<option value="${modelId}" ${isSelected}>${icon} ${label} (${modelId})</option>`;
+        }).join('');
+
+        const statusLabelEl = document.getElementById('modal-quota-badge');
+        if (statusLabelEl) {
+          statusLabelEl.textContent = `🟢 ${validModels.length} Models Active (ListModels)`;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("ListModels API call note:", err);
+  } finally {
+    if (btnEl) btnEl.innerHTML = `<i class="fa-solid fa-arrows-rotate"></i> ListModels (Fetch Active)`;
+  }
+}
+
 // Expose functions globally
 window.handleSendChat = handleSendChat;
 window.handleParseRouteFromChat = handleParseRouteFromChat;
+window.loadAvailableModelsFromApi = loadAvailableModelsFromApi;
 
 // ---------------------------------------------------------------------------
 // 6. Gemini Flash API Integration (Official systemInstruction + Dynamic Multi-Turn Chat)

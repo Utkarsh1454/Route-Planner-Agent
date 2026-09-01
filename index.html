@@ -264,11 +264,16 @@
         <label for="gemini-key-input">Gemini API Key:</label>
         <input type="password" id="gemini-key-input" placeholder="AIzaSy..." autocomplete="off">
 
-        <label for="gemini-model-select">Model Version:</label>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+          <label for="gemini-model-select" style="margin-top:0;">Model Version:</label>
+          <button id="list-models-btn" onclick="loadAvailableModelsFromApi()" style="background:rgba(56,189,248,0.15); color:var(--primary-blue); border:1px solid rgba(56,189,248,0.3); padding:2px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:600;">
+            <i class="fa-solid fa-arrows-rotate"></i> ListModels (Fetch Active)
+          </button>
+        </div>
         <select id="gemini-model-select">
-          <option value="gemini-2.5-flash">Gemini 2.5 Flash (Recommended - Free Tier)</option>
-          <option value="gemini-2.0-flash">Gemini 2.0 Flash (Free Tier)</option>
-          <option value="gemini-1.5-flash-latest">Gemini 1.5 Flash Latest (Free Tier)</option>
+          <option value="gemini-2.5-flash">⚡ Gemini 2.5 Flash (Recommended - Free Tier)</option>
+          <option value="gemini-2.0-flash">⚡ Gemini 2.0 Flash (Free Tier)</option>
+          <option value="gemini-1.5-flash-latest">⚡ Gemini 1.5 Flash Latest (Free Tier)</option>
         </select>
 
         <!-- Quota & Rate Limit Monitor Component -->
@@ -310,6 +315,6 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   
   <!-- Custom App JS -->
-  <script src="app.js?v=65"></script>
+  <script src="app.js?v=70"></script>
 </body>
 </html>
