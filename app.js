@@ -720,7 +720,18 @@ async function handleSendChat() {
       parts: [{ text: responseText }]
     });
 
-    const htmlFormatted = formatMarkdownToHtml(responseText);
+    let htmlFormatted = formatMarkdownToHtml(responseText);
+    
+    // Check if response contains route recommendations and append interactive action button
+    const extracted = smartExtractStops(responseText);
+    if (extracted.stops && extracted.stops.length > 0) {
+      htmlFormatted += `<div style="margin-top: 10px;">
+        <button class="ai-action-btn" onclick="handleParseRouteFromChat()" style="background: linear-gradient(135deg, var(--primary-blue), var(--primary-indigo)); color: #fff; padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-size: 12px; font-weight: 600;">
+          <i class="fa-solid fa-route"></i> Plot Gemini's Route on Map
+        </button>
+      </div>`;
+    }
+
     if (loadingEl) {
       loadingEl.innerHTML = htmlFormatted;
     } else {
@@ -756,35 +767,106 @@ function formatMarkdownToHtml(text) {
   return html;
 }
 
-function handleParseRouteFromChat() {
-  const lastUserMsgEl = document.querySelector('.chat-message.user:last-of-type');
-  const text = lastUserMsgEl ? lastUserMsgEl.innerText : "Ludhiana Amritsar Jalandhar Phagwara";
+function handleParseRouteFromChat(customText = null) {
+  let text = customText;
+  if (!text) {
+    const lastUserMsgEl = document.querySelector('.chat-message.user:last-of-type');
+    const lastBotMsgEl = document.querySelector('.chat-message.bot:last-of-type');
+    text = (lastUserMsgEl ? lastUserMsgEl.innerText : "") + " " + (lastBotMsgEl ? lastBotMsgEl.innerText : "");
+  }
+
+  const parsed = smartExtractStops(text);
   
-  const parsed = fallbackExtractStops(text);
   if (parsed.start) {
-    document.getElementById('start-input').value = parsed.start;
+    const startInput = document.getElementById('start-input');
+    if (startInput) startInput.value = parsed.start;
     startLocation = parsed.start;
   }
 
-  parsed.stops.forEach(s => addStopTag(s));
+  if (parsed.stops && parsed.stops.length > 0) {
+    selectedStops = [];
+    parsed.stops.forEach(s => {
+      if (!selectedStops.includes(s)) selectedStops.push(s);
+    });
+    renderSelectedStops();
 
-  // Switch to planner tab
-  document.querySelector('.tab-btn[data-tab="planner"]').click();
+    // Automatically plan route & plot on map
+    const returnToStart = document.getElementById('return-start-check') ? document.getElementById('return-start-check').checked : false;
+    const result = planAgentTrip(selectedStops, startLocation, returnToStart);
+    renderRouteOnMap(result);
+  }
+
+  // Switch to planner tab to show results
+  switchTab('planner');
 }
 
-function fallbackExtractStops(text) {
-  const words = text.split(/[\s,;.!?]+/);
-  let found = [];
-  words.forEach(w => {
-    const match = resolveLocation(w);
-    if (match && !found.includes(match)) {
-      found.push(match);
+function smartExtractStops(text) {
+  if (!text) return { start: "Phagwara", stops: [] };
+
+  const textLower = text.toLowerCase();
+  let foundLocations = [];
+
+  // 1. Landmark Aliases (e.g. golden temple -> Amritsar, lpu -> Phagwara)
+  Object.keys(ALIASES).forEach(alias => {
+    if (textLower.includes(alias)) {
+      const canon = ALIASES[alias];
+      if (locationsDB[canon] && !foundLocations.includes(canon)) {
+        foundLocations.push(canon);
+      }
     }
   });
 
+  // 2. Scan location names in dataset (longest matches first)
+  const sortedKeys = locationKeys.slice().sort((a, b) => b.length - a.length);
+  sortedKeys.forEach(name => {
+    const nameLower = name.toLowerCase();
+    if (name.length >= 4 && textLower.includes(nameLower)) {
+      if (!foundLocations.includes(name)) {
+        foundLocations.push(name);
+      }
+    }
+  });
+
+  // 3. Fallback token resolution if no long names found
+  if (foundLocations.length === 0) {
+    const tokens = text.split(/[\s,;.!?]+/);
+    tokens.forEach(tok => {
+      const canon = resolveLocation(tok);
+      if (canon && !foundLocations.includes(canon)) {
+        foundLocations.push(canon);
+      }
+    });
+  }
+
+  // 4. Extract explicit starting location ("starting from X", "from X")
+  let startLoc = null;
+  const startPatterns = [
+    /start(?:ing)?\s+(?:from|at)\s+([A-Za-z\s]+?)(?:\s+visit|\s+to|,|\.|$)/i,
+    /from\s+([A-Za-z\s]+?)(?:\s+to|\s+visit|,|\.|$)/i
+  ];
+
+  for (const pat of startPatterns) {
+    const match = text.match(pat);
+    if (match && match[1]) {
+      const resolved = resolveLocation(match[1].trim());
+      if (resolved) {
+        startLoc = resolved;
+        break;
+      }
+    }
+  }
+
+  if (!startLoc && foundLocations.length > 0) {
+    startLoc = foundLocations[0];
+  }
+  if (!startLoc) {
+    startLoc = memory.currentLocation || "Phagwara";
+  }
+
+  const stops = foundLocations.filter(loc => loc !== startLoc);
   return {
-    start: found.length > 0 ? found[0] : "Phagwara",
-    stops: found.length > 1 ? found.slice(1) : found
+    start: startLoc,
+    stops: stops.length > 0 ? stops : foundLocations
   };
 }
 
