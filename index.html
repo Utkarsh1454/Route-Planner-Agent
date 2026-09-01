@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Punjab Multi-Stop Route Planner Agent | OpenStreetMap & Gemini Flash AI</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="logo-icon">
+          <i class="fa-solid fa-route"></i>
+        </div>
+        <div class="brand-text">
+          <h1>Punjab Route Planner Agent</h1>
+          <span class="badge">CSE476 Agentic AI • OpenStreetMap & Gemini Flash</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="database-status">
+          <span class="status-dot"></span>
+          <span id="db-count-label">Loading 15,670+ OSM Locations...</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <div class="main-content">
+      <!-- Left Panel: Planner Controls & AI Chat -->
+      <aside class="sidebar">
+        <!-- Navigation Tabs -->
+        <div class="tab-buttons">
+          <button class="tab-btn active" data-tab="planner" onclick="switchTab('planner')">
+            <i class="fa-solid fa-compass"></i> Route Planner
+          </button>
+          <button class="tab-btn" data-tab="gemini-ai" onclick="switchTab('gemini-ai')">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Gemini Flash AI
+          </button>
+          <button class="tab-btn" data-tab="memory" onclick="switchTab('memory')">
+            <i class="fa-solid fa-brain"></i> Memory & Log
+          </button>
+        </div>
+
+        <!-- Tab 1: Agentic Route Planner -->
+        <div class="tab-content active" id="tab-planner">
+          <div class="card">
+            <h3><i class="fa-solid fa-location-dot"></i> Starting Location</h3>
+            <div class="input-group">
+              <input type="text" id="start-input" placeholder="Type city or landmark (default: Phagwara)" autocomplete="off">
+              <div id="start-suggestions" class="suggestions-box"></div>
+            </div>
+            <div class="quick-chips" id="quick-starts">
+              <span class="chip" data-val="Phagwara">Phagwara</span>
+              <span class="chip" data-val="Ludhiana">Ludhiana</span>
+              <span class="chip" data-val="Amritsar">Amritsar</span>
+              <span class="chip" data-val="Jalandhar">Jalandhar</span>
+              <span class="chip" data-val="Mohali">Mohali</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3><i class="fa-solid fa-map-pin"></i> Select Destinations / Stops</h3>
+            <div class="input-group">
+              <input type="text" id="stop-search-input" placeholder="Search & add stops (e.g. LPU, Patiala, Moga...)" autocomplete="off">
+              <div id="stop-suggestions" class="suggestions-box"></div>
+            </div>
+
+            <!-- Selected Stops Tag Container -->
+            <div class="selected-stops-container" id="selected-stops-list">
+              <!-- Dynamically populated tags -->
+            </div>
+
+            <div class="quick-chips">
+              <span class="chip-add" data-val="Jalandhar">+ Jalandhar</span>
+              <span class="chip-add" data-val="Ludhiana">+ Ludhiana</span>
+              <span class="chip-add" data-val="Amritsar">+ Amritsar</span>
+              <span class="chip-add" data-val="Mohali">+ Mohali</span>
+              <span class="chip-add" data-val="Patiala">+ Patiala</span>
+              <span class="chip-add" data-val="Bathinda">+ Bathinda</span>
+              <span class="chip-add" data-val="Moga">+ Moga</span>
+              <span class="chip-add" data-val="Hoshiarpur">+ Hoshiarpur</span>
+            </div>
+          </div>
+
+          <div class="card options-card">
+            <label class="toggle-option">
+              <input type="checkbox" id="return-start-check">
+              <span class="checkmark"></span>
+              <span>Return to Starting Location at the End (Circuit)</span>
+            </label>
+          </div>
+
+          <button id="plan-btn" class="btn-primary">
+            <i class="fa-solid fa-bolt"></i> Plan Optimal Route (2-Opt Agent)
+          </button>
+        </div>
+
+        <!-- Tab 2: Gemini Flash AI Assistant -->
+        <div class="tab-content" id="tab-gemini-ai">
+          <div class="card ai-card">
+            <div class="ai-header">
+              <i class="fa-solid fa-sparkles"></i>
+              <div>
+                <h4>Gemini 2.5/1.5 Flash AI Assistant</h4>
+                <p>Describe your trip in plain English or ask travel questions!</p>
+              </div>
+            </div>
+
+            <div class="chat-container" id="chat-messages">
+              <div class="chat-message bot">
+                👋 Hello! I am your Punjab Agentic Travel Assistant powered by <strong>Gemini Flash</strong>.
+                <br><br>
+                Try typing: <em>"Plan a trip starting from Ludhiana visiting Golden Temple in Amritsar, LPU Phagwara, and Jalandhar"</em> or ask me anything about traveling across Punjab!
+              </div>
+            </div>
+
+            <div class="chat-input-row">
+              <textarea id="chat-input" placeholder="Type trip description or travel question..." rows="2"></textarea>
+              <button id="send-chat-btn" class="btn-send" onclick="handleSendChat()"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+
+            <div class="ai-quick-actions">
+              <button class="ai-action-btn" id="parse-route-btn" onclick="handleParseRouteFromChat()">
+                <i class="fa-solid fa-wand-magic"></i> Extract & Load Stops into Planner
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Session Memory & Decision Trace -->
+        <div class="tab-content" id="tab-memory">
+          <div class="card">
+            <div class="memory-header">
+              <h3><i class="fa-solid fa-brain"></i> Agent Session Memory</h3>
+              <button id="reset-memory-btn" class="btn-danger-sm"><i class="fa-solid fa-trash-can"></i> Reset</button>
+            </div>
+            
+            <div class="memory-stats">
+              <div class="stat-box">
+                <span class="stat-num" id="visited-count">0</span>
+                <span class="stat-label">Visited Stops</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-num" id="session-dist">0 km</span>
+                <span class="stat-label">Cumulative Dist</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-num" id="current-loc-display">Phagwara</span>
+                <span class="stat-label">Current Loc</span>
+              </div>
+            </div>
+
+            <h4>Visited Places History:</h4>
+            <div id="visited-tags-list" class="visited-tags">
+              <span class="empty-msg">No stops visited yet in this session.</span>
+            </div>
+          </div>
+
+          <div class="card trace-card">
+            <h3><i class="fa-solid fa-list-check"></i> Plan-Act Decision Trace</h3>
+            <div id="trace-log-container" class="trace-log">
+              <p class="empty-msg">Run a route plan to inspect tool calls and 2-opt optimization steps.</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Right Main Panel: Interactive Map & Results -->
+      <main class="map-section">
+        <!-- Results Overlay Bar -->
+        <div id="results-bar" class="results-bar hidden">
+          <div class="result-item">
+            <span class="label">Planned Route:</span>
+            <span class="value" id="route-text-display">None</span>
+          </div>
+          <div class="result-item">
+            <span class="label">Total Distance:</span>
+            <span class="value highlight" id="distance-display">0 km</span>
+          </div>
+          <div class="result-item" id="skipped-warning" style="display:none;">
+            <span class="badge warning" id="skipped-text"></span>
+          </div>
+        </div>
+
+        <!-- Leaflet Map Container -->
+        <div id="map"></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- API Key Modal -->
+  <div id="api-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-key"></i> Gemini Flash API Configuration</h3>
+        <span class="close-modal">&times;</span>
+      </div>
+      <div class="modal-body">
+        <p>Enter your Google AI Studio Gemini API Key to enable real-time Gemini 2.5 / 1.5 Flash natural language query parsing and travel assistance.</p>
+        
+        <label for="gemini-key-input">Gemini API Key:</label>
+        <input type="password" id="gemini-key-input" placeholder="AIzaSy..." autocomplete="off">
+
+        <label for="gemini-model-select">Model Version:</label>
+        <select id="gemini-model-select">
+          <option value="gemini-2.5-flash">Gemini 2.5 Flash (Latest & Fast)</option>
+          <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+        </select>
+
+        <p class="small-text"><i class="fa-solid fa-circle-info"></i> Your key is saved locally in browser localStorage and is never stored on external servers.</p>
+      </div>
+      <div class="modal-footer">
+        <button id="save-key-btn" class="btn-primary">Save Key</button>
+        <button id="remove-key-btn" class="btn-secondary">Clear Key</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <!-- Custom App JS -->
+  <script src="app.js?v=5"></script>
+</body>
+</html>
