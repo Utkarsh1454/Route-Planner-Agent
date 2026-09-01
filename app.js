@@ -913,6 +913,63 @@ window.handleParseRouteFromChat = handleParseRouteFromChat;
 // 6. Gemini Flash API Integration (Official systemInstruction + Dynamic Multi-Turn Chat)
 // ---------------------------------------------------------------------------
 let geminiChatHistory = [];
+const quotaState = {
+  totalRequests: 0,
+  successfulRequests: 0,
+  rateLimitErrors: 0,
+  cooldownUntil: 0
+};
+let quotaTimer = null;
+
+function updateQuotaMonitorUI() {
+  const reqEl1 = document.getElementById('tab-quota-requests');
+  const reqEl2 = document.getElementById('modal-quota-requests');
+  const succEl1 = document.getElementById('tab-quota-success');
+  const succEl2 = document.getElementById('modal-quota-success');
+  const badgeEl1 = document.getElementById('tab-quota-badge');
+  const badgeEl2 = document.getElementById('modal-quota-badge');
+
+  const total = quotaState.totalRequests;
+  const succ = quotaState.successfulRequests;
+  const ratePct = total > 0 ? Math.round((succ / total) * 100) : 100;
+
+  if (reqEl1) reqEl1.textContent = total;
+  if (reqEl2) reqEl2.textContent = total;
+  if (succEl1) succEl1.textContent = `${ratePct}%`;
+  if (succEl2) succEl2.textContent = `${ratePct}%`;
+
+  const now = Date.now();
+  let badgeText = "🟢 Free Tier Active";
+  let badgeClass = "status-ok";
+
+  if (quotaState.cooldownUntil > now) {
+    const remSec = Math.ceil((quotaState.cooldownUntil - now) / 1000);
+    badgeText = `⏳ Cooldown (${remSec}s)`;
+    badgeClass = "status-warning";
+  } else if (!getActiveApiKey()) {
+    badgeText = "🔴 Key Required";
+    badgeClass = "status-error";
+  }
+
+  [badgeEl1, badgeEl2].forEach(b => {
+    if (b) {
+      b.textContent = badgeText;
+      b.className = `quota-badge ${badgeClass}`;
+    }
+  });
+}
+
+function triggerRateLimitCooldown(seconds = 60) {
+  quotaState.cooldownUntil = Date.now() + (seconds * 1000);
+  updateQuotaMonitorUI();
+  if (quotaTimer) clearInterval(quotaTimer);
+  quotaTimer = setInterval(() => {
+    updateQuotaMonitorUI();
+    if (Date.now() >= quotaState.cooldownUntil) {
+      clearInterval(quotaTimer);
+    }
+  }, 1000);
+}
 
 async function handleSendChat() {
   const inputEl = document.getElementById('chat-input');
@@ -927,6 +984,14 @@ async function handleSendChat() {
 
   if (!userApiKey) {
     appendChatMessage(`🔑 <strong>Gemini API Key Required:</strong> Please click <button onclick="document.getElementById('api-modal').classList.add('active')" style="background:linear-gradient(135deg, var(--primary-blue), var(--primary-indigo)); color:#fff; border:none; padding:4px 10px; border-radius:6px; cursor:pointer; font-weight:600;"><i class="fa-solid fa-key"></i> Configure API Key</button> to enter your Google AI Studio key.`, 'bot');
+    updateQuotaMonitorUI();
+    return;
+  }
+
+  // Check active cooldown
+  if (quotaState.cooldownUntil > Date.now()) {
+    const remSec = Math.ceil((quotaState.cooldownUntil - Date.now()) / 1000);
+    appendChatMessage(`⏳ <strong>Rate Limit Cooldown Active:</strong> Free tier rate limit exceeded. Please wait <strong>${remSec}s</strong> before sending another prompt. Track your limit at <a href="https://ai.dev/rate-limit" target="_blank" style="color:var(--primary-blue);">ai.dev/rate-limit</a>.`, 'bot');
     return;
   }
 
@@ -936,13 +1001,15 @@ async function handleSendChat() {
     parts: [{ text: query }]
   });
 
-  // Render Loading indicator
   const loadingId = 'loading-' + Date.now();
-  appendChatMessage(`<i class="fa-solid fa-spinner fa-spin"></i> Gemini Flash thinking...`, 'bot', loadingId);
+  appendChatMessage(`<i class="fa-solid fa-spinner fa-spin"></i> Consulting Gemini Flash AI & OpenStreetMap DB...`, 'bot', loadingId);
 
   let success = false;
   let responseText = "";
   let lastErrorMessage = "";
+
+  quotaState.totalRequests += 1;
+  updateQuotaMonitorUI();
 
   const payload = {
     systemInstruction: {
@@ -960,19 +1027,21 @@ async function handleSendChat() {
     }
   };
 
-  // Collect candidate key/auth strategies to guarantee connectivity
   const keysToTry = [
     { key: userApiKey, isBearer: userApiKey.startsWith("AQ.") },
     { key: userApiKey, isBearer: false }
   ];
 
   let userSelectedModel = localStorage.getItem('gemini_model') || 'gemini-2.5-flash';
-  if (userSelectedModel.includes('3.6') || userSelectedModel.includes('1.5-pro') || userSelectedModel.includes('2.5-pro') || userSelectedModel === 'gemini-1.5-flash') {
+  if (userSelectedModel.includes('3.6') || userSelectedModel.includes('pro') || userSelectedModel === 'gemini-1.5-flash') {
     userSelectedModel = 'gemini-2.5-flash';
     localStorage.setItem('gemini_model', 'gemini-2.5-flash');
   }
 
-  const modelsToTry = [userSelectedModel, 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-3.1-pro-preview'].filter((v, i, a) => a.indexOf(v) === i);
+  // Filter STRICTLY for Free Tier supported Flash models to prevent 429 quota errors
+  const modelsToTry = [userSelectedModel, 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash-latest']
+    .filter(m => m && !m.includes('pro') && !m.includes('3.6'))
+    .filter((v, i, a) => a.indexOf(v) === i);
 
   for (const strat of keysToTry) {
     if (!strat.key) continue;
@@ -1002,9 +1071,17 @@ async function handleSendChat() {
         if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts[0].text) {
           responseText = data.candidates[0].content.parts[0].text;
           success = true;
+          quotaState.successfulRequests += 1;
+          updateQuotaMonitorUI();
           break;
         } else if (data.error && data.error.message) {
           lastErrorMessage = data.error.message;
+          if (response.status === 429 || lastErrorMessage.toLowerCase().includes('quota') || lastErrorMessage.toLowerCase().includes('rate')) {
+            quotaState.rateLimitErrors += 1;
+            const matchSec = lastErrorMessage.match(/retry in\s+([\d.]+)\s*s/i);
+            const retrySec = matchSec ? Math.ceil(parseFloat(matchSec[1])) : 60;
+            triggerRateLimitCooldown(retrySec);
+          }
         }
       } catch (err) {
         lastErrorMessage = err.message;

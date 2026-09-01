@@ -161,6 +161,32 @@
                 <i class="fa-solid fa-wand-magic"></i> Extract & Load Stops into Planner
               </button>
             </div>
+
+            <!-- Tab Quota & Rate Limit Monitor -->
+            <div class="quota-monitor-card" style="margin-top:14px;">
+              <div class="quota-header">
+                <div class="quota-title"><i class="fa-solid fa-gauge-high"></i> Live Quota & Rate Limit Monitor</div>
+                <span class="quota-badge status-ok" id="tab-quota-badge">🟢 API Ready</span>
+              </div>
+              <div class="quota-metrics">
+                <div class="quota-stat">
+                  <div class="quota-stat-val" id="tab-quota-requests">0</div>
+                  <div class="quota-stat-lbl">Requests Sent</div>
+                </div>
+                <div class="quota-stat">
+                  <div class="quota-stat-val" id="tab-quota-success">100%</div>
+                  <div class="quota-stat-lbl">Success Rate</div>
+                </div>
+                <div class="quota-stat">
+                  <div class="quota-stat-val" id="tab-quota-limit">15 RPM</div>
+                  <div class="quota-stat-lbl">Free Tier Limit</div>
+                </div>
+              </div>
+              <div class="quota-actions">
+                <a href="https://ai.dev/rate-limit" target="_blank" class="btn-quota-link"><i class="fa-solid fa-chart-line"></i> ai.dev/rate-limit</a>
+                <a href="https://ai.google.dev/gemini-api/docs/rate-limits" target="_blank" class="btn-quota-link"><i class="fa-solid fa-book-open"></i> Rate Limits</a>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -240,13 +266,38 @@
 
         <label for="gemini-model-select">Model Version:</label>
         <select id="gemini-model-select">
-          <option value="gemini-2.5-flash">Gemini 2.5 Flash (Recommended)</option>
-          <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
-          <option value="gemini-1.5-flash-latest">Gemini 1.5 Flash (Latest)</option>
-          <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro (Preview)</option>
+          <option value="gemini-2.5-flash">Gemini 2.5 Flash (Recommended - Free Tier)</option>
+          <option value="gemini-2.0-flash">Gemini 2.0 Flash (Free Tier)</option>
+          <option value="gemini-1.5-flash-latest">Gemini 1.5 Flash Latest (Free Tier)</option>
         </select>
 
-        <p class="small-text"><i class="fa-solid fa-circle-info"></i> Your key is saved locally in browser localStorage and is never stored on external servers.</p>
+        <!-- Quota & Rate Limit Monitor Component -->
+        <div class="quota-monitor-card">
+          <div class="quota-header">
+            <div class="quota-title"><i class="fa-solid fa-gauge-high"></i> Gemini API Quota Monitor</div>
+            <span class="quota-badge status-ok" id="modal-quota-badge">🟢 Free Tier Active</span>
+          </div>
+          <div class="quota-metrics">
+            <div class="quota-stat">
+              <div class="quota-stat-val" id="modal-quota-requests">0</div>
+              <div class="quota-stat-lbl">Requests Sent</div>
+            </div>
+            <div class="quota-stat">
+              <div class="quota-stat-val" id="modal-quota-success">100%</div>
+              <div class="quota-stat-lbl">Success Rate</div>
+            </div>
+            <div class="quota-stat">
+              <div class="quota-stat-val" id="modal-quota-limit">15 RPM</div>
+              <div class="quota-stat-lbl">Free Rate Limit</div>
+            </div>
+          </div>
+          <div class="quota-actions">
+            <a href="https://ai.dev/rate-limit" target="_blank" class="btn-quota-link"><i class="fa-solid fa-chart-line"></i> Live Quota (ai.dev/rate-limit)</a>
+            <a href="https://ai.google.dev/gemini-api/docs/rate-limits" target="_blank" class="btn-quota-link"><i class="fa-solid fa-book-open"></i> Rate Limit Docs</a>
+          </div>
+        </div>
+
+        <p class="small-text" style="margin-top:10px;"><i class="fa-solid fa-circle-info"></i> Your key is saved locally in browser localStorage and is never stored on external servers.</p>
       </div>
       <div class="modal-footer">
         <button id="save-key-btn" class="btn-primary">Save Key</button>
@@ -259,6 +310,6 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   
   <!-- Custom App JS -->
-  <script src="app.js?v=60"></script>
+  <script src="app.js?v=65"></script>
 </body>
 </html>
